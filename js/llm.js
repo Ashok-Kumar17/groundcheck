@@ -34,10 +34,16 @@ export function createLLM() {
     },
     async json(messages, schema, maxTokens = 256) {
       const t0 = performance.now();
-      const r = await engine.chat.completions.create({
+      const attempt = (useSchema) => engine.chat.completions.create({
         messages, temperature: 0, max_tokens: maxTokens,
-        response_format: { type: "json_object", schema: JSON.stringify(schema) },
+        response_format: useSchema ? { type: "json_object", schema: JSON.stringify(schema) } : { type: "json_object" },
       });
+      let r;
+      try { r = await attempt(true); }
+      catch (e1) {
+        // Known WebLLM issue: a disposed GrammarMatcher kills schema mode. Retry once, then fall back to plain JSON mode.
+        try { r = await attempt(true); } catch (e2) { r = await attempt(false); }
+      }
       const ms = performance.now() - t0;
       const u = r.usage || {}, x = u.extra || {};
       stats.calls++; stats.llmMs += ms;
@@ -46,7 +52,11 @@ export function createLLM() {
       if (x.decode_tokens_per_s) stats.decode.push(x.decode_tokens_per_s);
       if (x.prefill_tokens_per_s) stats.prefill.push(x.prefill_tokens_per_s);
       let data = null;
-      try { data = JSON.parse(r.choices[0].message.content); } catch {}
+      const raw = r.choices[0].message.content || "";
+      try { data = JSON.parse(raw); } catch {
+        const m = raw.match(/\{[\s\S]*\}/); // fallback mode can add stray text around the JSON
+        if (m) { try { data = JSON.parse(m[0]); } catch {} }
+      }
       return { data, usage: { ...u, ms } };
     },
     resetStats() { Object.assign(stats, { calls: 0, promptTokens: 0, outTokens: 0, ttft: [], decode: [], prefill: [], llmMs: 0 }); },

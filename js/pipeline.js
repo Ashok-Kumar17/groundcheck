@@ -251,10 +251,11 @@ export async function runGroundcheck(text, { llm, ep, onEvent = () => {}, opts =
     const s = sentences[i];
     const ctx = sentences.slice(Math.max(0, i - 2), i).map(x => x.text).join(" ") || "(start of text)";
     onEvent({ type: "stage", stage: "extract", i, n: sentences.length });
-    const { data, usage } = await llm.json([
+    let data = null, usage = {};
+    try { ({ data, usage } = await llm.json([
       { role: "system", content: EXTRACT_SYS },
       { role: "user", content: `Context: ${ctx}\nSentence: ${s.text}` },
-    ], EXTRACT_SCHEMA, 220);
+    ], EXTRACT_SCHEMA, 220)); } catch (e) { usage = { error: String(e.message || e).slice(0, 90) }; }
     onEvent({ type: "llm", stage: "extract", usage });
     for (const c of (data?.claims || []).slice(0, 4)) {
       if (!c.claim || c.claim.split(" ").length < 3) continue;
@@ -287,10 +288,11 @@ export async function runGroundcheck(text, { llm, ep, onEvent = () => {}, opts =
       continue;
     }
     const ctx = passages.map((p, i) => `[${i + 1}] (${p.title}) ${p.text}`).join("\n");
-    const { data, usage } = await llm.json([
+    let data = null, usage = {};
+    try { ({ data, usage } = await llm.json([
       { role: "system", content: VERIFY_SYS },
       { role: "user", content: `CLAIM: ${c.claim}\n\nPASSAGES:\n${ctx}` },
-    ], VERIFY_SCHEMA, 260);
+    ], VERIFY_SCHEMA, 260)); } catch (e) { usage = { error: String(e.message || e).slice(0, 90) }; }
     onEvent({ type: "llm", stage: "verify", usage });
     const raw = data && VERDICTS.includes(data.verdict) ? data : { quote: "", passage: 0, checks: [], verdict: "NOT_FOUND" };
     c.result = applyGuards(c.claim, raw, passages);

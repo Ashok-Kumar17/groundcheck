@@ -241,9 +241,12 @@ async function retrieve(ep, claim, entities, resolved, opts, sentText) {
   // Entity articles can be the wrong lens ("India" for a Moon-landing claim), so always add one
   // keyword-search article too; the local re-ranker then picks whichever passages actually fit.
   if (kwSearch) {
-    const s = await ep.search(kwSearch, 2).catch(() => null);
-    for (const r of (s?.results || []).slice(0, arts.length ? 1 : opts.maxArticles)) {
-      if (!arts.find(a => a.slug === r.slug)) arts.push({ slug: r.slug, title: r.title, url: r.url, excerpt: r.excerpt });
+    const s = await ep.search(kwSearch, 3).catch(() => null);
+    let add = arts.length ? 1 : opts.maxArticles;
+    for (const r of s?.results || []) {
+      if (!add) break;
+      if (arts.find(a => a.slug === r.slug)) continue; // top hit is often the entity article itself
+      arts.push({ slug: r.slug, title: r.title, url: r.url, excerpt: r.excerpt }); add--;
     }
   }
   const all = [];

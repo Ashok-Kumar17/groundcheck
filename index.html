@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Groundcheck · on-device fact-checking for AI writing</title>
+<meta name="description" content="Paste AI-written text. A language model running on your own GPU splits it into claims, checks each against Edgepedia, and shows the exact sentence that proves or disproves it.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%235b54d6'/><path d='M9 16.5l4.5 4.5L23 11.5' stroke='white' stroke-width='3.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <div class="logo"><svg viewBox="0 0 32 32"><rect width="32" height="32" rx="8"/><path d="M9 16.5l4.5 4.5L23 11.5"/></svg></div>
+    <div>
+      <h1>Groundcheck</h1>
+      <p>Fact-checks AI writing on your own device, with the exact source sentence for every verdict.</p>
+    </div>
+  </div>
+  <div class="model">
+    <select id="modelSel" aria-label="Model"></select>
+    <button id="loadBtn" class="btn">Load model</button>
+    <span id="gpuPill" class="pill">checking GPU…</span>
+  </div>
+</header>
+
+<div id="banner" class="banner" hidden></div>
+<div id="progress" class="progress" hidden><div class="bar"><i></i></div><span></span></div>
+
+<nav class="tabs" role="tablist">
+  <button class="tab active" data-tab="check">Check text</button>
+  <button class="tab" data-tab="hood">Under the hood</button>
+  <button class="tab" data-tab="bench">Benchmark</button>
+  <button class="tab" data-tab="how">How it works</button>
+</nav>
+
+<main>
+  <!-- CHECK -->
+  <section id="tab-check" class="pane active">
+    <div class="grid">
+      <div class="col left">
+        <div class="samples"><span>Try:</span><span id="sampleBtns"></span></div>
+        <textarea id="input" spellcheck="false" placeholder="Paste a paragraph written by ChatGPT, Gemini or any AI…"></textarea>
+        <div id="annotated" class="annotated" hidden></div>
+        <div class="actions">
+          <button id="runBtn" class="btn primary" disabled>Check facts</button>
+          <button id="editBtn" class="btn ghost" hidden>Edit text</button>
+          <button id="replayBtn" class="btn ghost">Replay a recorded run</button>
+          <span id="runStatus" class="muted"></span>
+        </div>
+        <div id="summary" class="summary" hidden></div>
+        <div class="legend">
+          <span><i class="dot ok"></i>Supported by source</span>
+          <span><i class="dot bad"></i>Contradicted by source</span>
+          <span><i class="dot unk"></i>Couldn't verify</span>
+          <span><i class="slopline"></i>AI-style wording</span>
+        </div>
+      </div>
+      <div class="col right">
+        <div id="cards" class="cards"><div class="empty">
+          <h3>What this does</h3>
+          <ol>
+            <li>A small language model <b>running on your GPU</b> splits the text into checkable claims.</li>
+            <li>Only short names and keywords go to <b>Edgepedia</b> to fetch the relevant paragraphs. Your text stays on your device.</li>
+            <li>The model must <b>quote the exact source sentence</b>. Plain code then compares the details, so the model can't just say "looks fine".</li>
+          </ol>
+          <p class="muted">Load a model, pick an example on the left, and press <b>Check facts</b>.</p>
+        </div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOOD -->
+  <section id="tab-hood" class="pane">
+    <div class="metrics" id="metrics"></div>
+    <h3 class="h3">Pipeline trace</h3>
+    <div id="trace" class="trace"><p class="muted">Run a check to see every step, with timings.</p></div>
+  </section>
+
+  <!-- BENCH -->
+  <section id="tab-bench" class="pane">
+    <div class="benchhead">
+      <div>
+        <h3 class="h3">40 hand-labelled claims, 20 true and 20 with one planted error</h3>
+        <p class="muted">Each true claim is stated in its Edgepedia article. Each false one is the same fact with one wrong year, number, person, place or order, the kind of mistake chatbots make. The number that matters most is <b>false claims shown as green</b>.</p>
+      </div>
+      <button id="benchBtn" class="btn primary" disabled>Run benchmark on this device</button>
+    </div>
+    <div id="benchOut"></div>
+  </section>
+
+  <!-- HOW -->
+  <section id="tab-how" class="pane prose">
+    <div id="flow" class="flow"></div>
+    <h3 class="h3">Why it's built this way</h3>
+    <div class="cols2">
+      <div><h4>Small models agree with everything</h4><p>Asked "is this claim supported?", a 1.5B model says yes to nearly any confident sentence, including false ones. So the model isn't asked to judge. It quotes a sentence, writes down what the claim says and what the source says, and plain code compares the two.</p></div>
+      <div><h4>No quote, no verdict</h4><p>Every verdict must point at a sentence that actually exists in the retrieved text. If the "quote" isn't there, the model invented its evidence, and the claim drops to <i>couldn't verify</i>. A wrong green tick is worse than an honest "don't know".</p></div>
+      <div><h4>The details must match</h4><p>A "supported" verdict stands only if every number, date, ordinal ("third") and proper name in the claim also appears in the evidence. This catches the most common AI error: the right fact with the wrong year.</p></div>
+      <div><h4>Private by design</h4><p>The document never leaves the device. Edgepedia only receives the names to look up (for example "Chandrayaan-3") and a few keywords per claim. The trace tab counts every byte sent.</p></div>
+    </div>
+    <p class="muted small">Sources: Edgepedia (EdgeChat), Edgepedia Community License 1.0. Each card links to and credits its article. Model: Qwen2.5 via WebLLM on WebGPU.</p>
+  </section>
+</main>
+
+<footer class="foot">Built by Nagul Prasath S V · IIT Madras · uses the public <a href="https://www.edgepedia.org/developers" target="_blank" rel="noopener">Edgepedia API</a> · <a href="https://github.com/Ashok-Kumar17/groundcheck" target="_blank" rel="noopener">source</a></footer>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

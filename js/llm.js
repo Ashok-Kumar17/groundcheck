@@ -16,10 +16,21 @@ export function parseJSON(raw) {
     else if (c === "{") depth++;
     else if (c === "}") { if (--depth === 0) { end = i; break; } }
   }
-  const blob = end > 0 ? s.slice(start, end + 1) : s.slice(start);
-  for (const t of [blob, blob.replace(/,\s*([}\]])/g, "$1")]) {
-    try { return JSON.parse(t); } catch {}
+  let blob = end > 0 ? s.slice(start, end + 1) : s.slice(start);
+  const cands = [blob, blob.replace(/,\s*([}\]])/g, "$1")];
+  if (end < 0) { // truncated: close whatever is still open
+    let d = 0, inS = false, es = false, closers = "";
+    for (const c of blob) {
+      if (inS) { if (es) es = false; else if (c === "\\") es = true; else if (c === '"') inS = false; continue; }
+      if (c === '"') inS = true; else if (c === "{") { d++; closers = "}" + closers; }
+      else if (c === "[") { d++; closers = "]" + closers; }
+      else if (c === "}" || c === "]") { d--; closers = closers.slice(1); }
+    }
+    let rep = blob.replace(/,\s*$/, "");
+    if (inS) rep += '"';
+    cands.push(rep + closers);
   }
+  for (const t of cands) { try { return JSON.parse(t); } catch {} }
   return null;
 }
 
@@ -67,7 +78,7 @@ export function createLLM() {
       // DEVICE_REMOVED). Free generation + a key hint + defensive parsing is far more stable, and
       // Qwen2.5-Instruct emits clean JSON for these small shapes at temperature 0.
       const keys = Object.keys(schema?.properties || {});
-      const hint = keys.length ? `\nRespond with ONLY one minified JSON object, no prose, no code fence. Keys: ${keys.join(", ")}.` : "";
+      const hint = keys.length ? `\n\nOutput format: respond with ONLY a single minified JSON object and nothing else — no explanation, no markdown, no code fence. Required keys: ${keys.join(", ")}. Start your reply with { and end with }.` : "";
       const msgs = hint
         ? messages.map((m, i) => i === 0 && m.role === "system" ? { ...m, content: m.content + hint } : m)
         : messages;
@@ -85,7 +96,9 @@ export function createLLM() {
       if (x.time_to_first_token_s) stats.ttft.push(x.time_to_first_token_s * 1000);
       if (x.decode_tokens_per_s) stats.decode.push(x.decode_tokens_per_s);
       if (x.prefill_tokens_per_s) stats.prefill.push(x.prefill_tokens_per_s);
-      return { data: parseJSON(r.choices?.[0]?.message?.content || ""), usage: { ...u, ms } };
+      const content = r.choices?.[0]?.message?.content || "";
+      stats.lastRaw = content;
+      return { data: parseJSON(content), usage: { ...u, ms } };
     },
     resetStats() { Object.assign(stats, { calls: 0, promptTokens: 0, outTokens: 0, ttft: [], decode: [], prefill: [], llmMs: 0 }); },
   };

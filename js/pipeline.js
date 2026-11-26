@@ -276,7 +276,7 @@ export async function runGroundcheck(text, { llm, ep, onEvent = () => {}, opts =
     try { ({ data, usage } = await llm.json([
       { role: "system", content: EXTRACT_SYS },
       { role: "user", content: `Context: ${ctx}\nSentence: ${s.text}` },
-    ], EXTRACT_SCHEMA, 220)); } catch (e) { usage = { error: String(e.message || e).slice(0, 90) }; }
+    ], EXTRACT_SCHEMA, 300)); } catch (e) { usage = { error: String(e.message || e).slice(0, 90) }; }
     onEvent({ type: "llm", stage: "extract", usage });
     for (const c of (data?.claims || []).slice(0, 4)) {
       if (!c.claim || c.claim.split(" ").length < 3) continue;
@@ -314,7 +314,7 @@ export async function runGroundcheck(text, { llm, ep, onEvent = () => {}, opts =
     try { ({ data, usage } = await llm.json([
       { role: "system", content: VERIFY_SYS },
       { role: "user", content: `CLAIM: ${c.claim}\n\nPASSAGES:\n${ctx}` },
-    ], VERIFY_SCHEMA, 260)); } catch (e) { usage = { error: String(e.message || e).slice(0, 90) }; }
+    ], VERIFY_SCHEMA, 320)); } catch (e) { usage = { error: String(e.message || e).slice(0, 90) }; }
     onEvent({ type: "llm", stage: "verify", usage });
     const raw = data && VERDICTS.includes(data.verdict) ? data : { quote: "", passage: 0, checks: [], verdict: "NOT_FOUND" };
     c.result = applyGuards(c.claim, raw, passages);
@@ -340,7 +340,7 @@ export async function checkClaim(claim, entities, { llm, ep, opts = {} }) {
   const { data, usage } = await llm.json([
     { role: "system", content: VERIFY_SYS },
     { role: "user", content: `CLAIM: ${claim}\n\nPASSAGES:\n${ctx}` },
-  ], VERIFY_SCHEMA, 260);
+  ], VERIFY_SCHEMA, 320);
   const raw = data && VERDICTS.includes(data.verdict) ? data : { quote: "", passage: 0, checks: [], verdict: "NOT_FOUND" };
   return { ...applyGuards(claim, raw, passages), rawVerdict: raw.verdict, passages, usage };
 }

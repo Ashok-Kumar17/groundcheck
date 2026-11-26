@@ -166,7 +166,7 @@ function cardHTML(c) {
     <details><summary>What the model saw (${(c.passages || []).length} passages${arts ? " from " + arts : ""})</summary>
       ${(c.passages || []).map((p, i) => `<p><b>[${i + 1}] ${esc(p.title)}</b>: ${esc(p.text.slice(0, 320))}${p.text.length > 320 ? "…" : ""}</p>`).join("")}
       ${r.checks?.length ? `<p><b>Details compared:</b> ${r.checks.map(x => `claim "${esc(x.claim_says)}" vs source "${esc(x.source_says)}"`).join("; ")}</p>` : ""}
-      <p><b>Model's own verdict:</b> ${esc(r.verdict)}${r.decidedBy === "slot-compare" ? " (final call made by the detail comparison in code)" : ""}</p>
+      <p><b>Model's own verdict:</b> ${esc(r.verdict)}${r.decidedBy === "code" ? " (final call made in code, not by the model)" : ""}</p>
     </details></div>`;
 }
 

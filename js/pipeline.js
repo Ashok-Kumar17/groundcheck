@@ -63,8 +63,9 @@ Fill in, in this order:
 1. quote: copy WORD FOR WORD the one sentence from the passages that is about the same fact as the claim. If none is, write "".
 2. passage: the number of that passage (0 if none).
 3. checks: for each key detail of the claim (a name, number, date, place, rank or order), write
-   claim_says: that detail exactly as the claim states it,
-   source_says: what the quote states for the SAME detail, copied from the quote ("" if the quote does not mention it).
+   claim_says: that detail as the claim states it, 1 to 4 words only,
+   source_says: what the quote states for the SAME detail, 1 to 4 words copied from the quote ("" if not mentioned).
+   Example: claim "The bridge opened in 1932 in Sydney" → [{"claim_says":"1932","source_says":"1932"},{"claim_says":"Sydney","source_says":"Sydney"}].
 4. verdict: SUPPORTED if every detail matches, CONTRADICTED if any detail differs, NOT_FOUND if the passages do not say.
 Use only the passages, never your own memory. Be suspicious: the claim may contain a small planted error.`;
 
@@ -115,44 +116,62 @@ export function hardDetails(claim) {
   return [...new Set([...numbersIn(claim), ...ords, ...caps.map(c => norm(c))])];
 }
 
+const YEAR = /\b(1[0-9]{3}|20[0-9]{2})\b/g;
+const short = (x) => tokens(x).length > 0 && tokens(x).length <= 6;
+const hasTok = (text, d) => new RegExp(`\\b${d.replace(/\./g, "\\.")}\\b`).test(norm(text));
+
 export function applyGuards(claim, raw, passages) {
   const out = { ...raw, status: "UNVERIFIED", guard: null, decidedBy: "model" };
-  if (!raw.quote || raw.verdict === "NOT_FOUND" && !(raw.checks || []).some(c => c.source_says)) {
-    out.reason = out.reason || "The sources found don't cover this claim."; return out;
-  }
+  const allText = passages.map(p => p.text).join(" ");
+  if (!raw.quote) { out.reason = "The sources found don't cover this claim."; return out; }
   const hit = quoteFound(raw.quote, passages);
   if (!hit) {
     out.guard = "The model's quote is not in the source (invented evidence), so its verdict was discarded.";
-    return out;
+    out.reason = "No reliable evidence."; return out;
   }
   out.evidenceIndex = hit.index;
   const quote = raw.quote, ev = passages[hit.index].text;
+  const hard = hardDetails(claim);
+  const missingEv = hard.filter(d => !hasTok(ev, d));
+  const missingAll = hard.filter(d => !hasTok(allText, d));
 
-  // Slot comparison done in code, not by the model.
+  // 1) Typed conflicts, decided in code: a year or ordinal the claim states that appears nowhere in the
+  //    sources, while the quoted sentence states a different one.
+  const qYears = [...new Set(norm(quote).match(YEAR) || [])];
+  const badYear = missingAll.find(d => /^(1[0-9]{3}|20[0-9]{2})$/.test(d));
+  if (badYear && qYears.length) {
+    return { ...out, status: "CONTRADICTED", decidedBy: "code", reason: `Claim says ${badYear}; the source says ${qYears.join(" / ")}.` };
+  }
+  const qOrd = tokens(quote).filter(t => ORD.includes(t));
+  const badOrd = missingAll.find(d => ORD.includes(d));
+  if (badOrd && qOrd.length) {
+    return { ...out, status: "CONTRADICTED", decidedBy: "code", reason: `Claim says "${badOrd}"; the source says "${qOrd[0]}".` };
+  }
+
+  // 2) Short slot comparison (the model extracts, code compares).
   let mismatch = null, matched = 0, usable = 0;
   for (const c of raw.checks || []) {
     const cs = (c.claim_says || "").trim(), ss = (c.source_says || "").trim();
-    if (!cs || !ss) continue;
-    if (!contains(quote, ss, 0.8)) continue; // source_says must really be in the quote
+    if (!short(cs) || !short(ss) || !contains(quote, ss, 0.8)) continue;
     usable++;
-    if (contains(quote, cs, 1) || norm(cs) === norm(ss)) matched++;
-    else if (!contains(cs, ss, 1)) mismatch = mismatch || { claim: cs, source: ss };
+    if (contains(ev, cs, 1) || norm(cs) === norm(ss)) matched++;
+    else if (!contains(cs, ss, 1) && !contains(ss, cs, 1)) mismatch = mismatch || { claim: cs, source: ss };
   }
-  const missing = hardDetails(claim).filter(d => !new RegExp(`\\b${d.replace(/\./g, "\\.")}\\b`).test(norm(ev)));
-
-  if (mismatch) {
-    out.status = "CONTRADICTED"; out.decidedBy = "slot-compare";
-    out.reason = `Claim says "${mismatch.claim}", source says "${mismatch.source}".`;
-  } else if (raw.verdict === "CONTRADICTED") {
-    out.status = "CONTRADICTED";
-    out.reason = out.reason || "The source states this differently.";
-  } else if (raw.verdict === "SUPPORTED" || (usable && matched === usable)) {
-    if (missing.length) {
-      out.status = "UNVERIFIED";
-      out.guard = `"${missing.join('", "')}" from the claim is not in the evidence, so "supported" was not trusted.`;
-    } else { out.status = "SUPPORTED"; out.reason = out.reason || "The source states the same fact."; }
+  if (mismatch && missingEv.length) {
+    return { ...out, status: "CONTRADICTED", decidedBy: "code", reason: `Claim says "${mismatch.claim}"; the source says "${mismatch.source}".` };
   }
-  if (!out.reason) out.reason = out.status === "SUPPORTED" ? "The source states the same fact." : "Not settled by the sources.";
+  if (raw.verdict === "CONTRADICTED" && missingEv.length) {
+    return { ...out, status: "CONTRADICTED", reason: `The source states this differently (${missingEv.map(d => `"${d}"`).join(", ")} not in it).` };
+  }
+  // 3) Supported only if every number, ordinal and name in the claim is in the quoted passage.
+  if (raw.verdict === "SUPPORTED" || (usable && matched === usable) || raw.verdict === "CONTRADICTED") {
+    if (missingEv.length) {
+      return { ...out, guard: `"${missingEv.join('", "')}" from the claim is not in the evidence, so the model's verdict was not trusted.`, reason: "Evidence doesn't confirm every detail." };
+    }
+    if (raw.verdict === "CONTRADICTED") return { ...out, status: "CONTRADICTED", reason: "The source states this differently." };
+    return { ...out, status: "SUPPORTED", reason: "The source states the same fact." + (raw.verdict !== "SUPPORTED" ? " (all details matched in code)" : ""), decidedBy: raw.verdict === "SUPPORTED" ? "model" : "code" };
+  }
+  out.reason = missingEv.length ? `Not settled by the sources (${missingEv.map(d => `"${d}"`).join(", ")} not found).` : "Not settled by the sources.";
   return out;
 }
 

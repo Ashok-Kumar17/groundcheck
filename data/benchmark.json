@@ -1,1 +1,563 @@
-{"model": "Qwen2.5-1.5B-Instruct (Q4_K_M, llama.cpp CPU)", "date": "2026-11-26T15:16:11.032Z", "metrics": {"n": 40, "trueSupported": 12, "trueFlagged": 0, "trueUnverified": 8, "falseCaught": 4, "falsePassed": 1, "falseUnverified": 15, "guardCatches": 12, "nTrue": 20, "nFalse": 20, "accuracy": 40, "falseCaughtPct": 20, "dangerousPct": 5, "trueSupportedPct": 60}, "rawMetrics": {"n": 40, "trueSupported": 12, "trueFlagged": 0, "trueUnverified": 8, "falseCaught": 0, "falsePassed": 6, "falseUnverified": 14, "guardCatches": 0, "nTrue": 20, "nFalse": 20, "accuracy": 30, "falseCaughtPct": 0, "dangerousPct": 30, "trueSupportedPct": 60}, "rows": [{"id": 0, "claim": "The Eiffel Tower was built for the 1889 World's Fair.", "entities": ["Eiffel Tower"], "label": true, "status": "SUPPORTED", "rawVerdict": "SUPPORTED", "guard": null, "quote": "The Eiffel Tower (Tour Eiffel) is a 330-meter wrought-iron lattice tower on the Champ de Mars in Paris, built for the 1889 World's Fair and now one of the most visited ticketed monuments in the world.", "reason": "The source states the same fact.", "s": 29.84830117225647}, {"id": 1, "claim": "The Eiffel Tower was built for the 1900 World's Fair.", "entities": ["Eiffel Tower"], "label": false, "status": "CONTRADICTED", "rawVerdict": "SUPPORTED", "guard": null, "quote": "The Eiffel Tower (Tour Eiffel) is a 330-meter wrought-iron lattice tower on the Champ de Mars in Paris, built for the 1889 World's Fair and now one of the most visited ticketed monuments in the world.", "reason": "Claim says 1900; the source says 1889.", "s": 26.84622573852539}, {"id": 2, "claim": "The Taj Mahal was built by Shah Jahan in memory of his wife Mumtaz Mahal.", "entities": ["Taj Mahal", "Shah Jahan"], "label": true, "status": "SUPPORTED", "rawVerdict": "SUPPORTED", "guard": null, "quote": "The Taj Mahal (\u0924\u093e\u091c \u092e\u0939\u0932) is an ivory-white marble mausoleum in Agra, India, built by Mughal emperor Shah Jahan in memory of his wife Mumtaz Mahal.", "reason": "The source states the same fact.", "s": 31.488392114639282}, {"id": 3, "claim": "The Taj Mahal was built by Akbar in memory of his wife.", "entities": ["Taj Mahal", "Akbar"], "label": false, "status": "UNVERIFIED", "rawVerdict": "NOT_FOUND", "guard": "\"akbar\" from the claim is not in the evidence, so the model's verdict was not trusted.", "quote": "The Taj Mahal (\u0924\u093e\u091c \u092e\u0939\u0932) is an ivory-white marble mausoleum in Agra, India, built by Mughal emperor Shah Jahan in memory of his wife Mumtaz Mahal.", "reason": "Evidence doesn't confirm every detail.", "s": 33.21998858451843}, {"id": 4, "claim": "Chandrayaan-3 made India the fourth country to soft-land on the Moon.", "entities": ["Chandrayaan-3"], "label": true, "status": "SUPPORTED", "rawVerdict": "SUPPORTED", "guard": null, "quote": "Chandrayaan-3 (\u091a\u0928\u094d\u0926\u094d\u0930\u092f\u093e\u0928-\u0969) was an Indian Space Research Organisation lunar mission that made India the fourth country to soft-land on the Moon, near the south pole in 2023.", "reason": "The source states the same fact.", "s": 30.375520944595337}, {"id": 5, "claim": "Chandrayaan-3 made India the third country to soft-land on the Moon.", "entities": ["Chandrayaan-3"], "label": false, "status": "CONTRADICTED", "rawVerdict": "SUPPORTED", "guard": null, "quote": "Chandrayaan-3 (\u091a\u0928\u094d\u0926\u094d\u0930\u092f\u093e\u0928-\u0969) was an Indian Space Research Organisation lunar mission that made India the fourth country to soft-land on the Moon, near the south pole in 2023.", "reason": "Claim says \"third\"; the source says \"fourth\".", "s": 29.96536684036255}, {"id": 6, "claim": "IIT Madras was founded in 1959 with West German aid.", "entities": ["IIT Madras"], "label": true, "status": "SUPPORTED", "rawVerdict": "SUPPORTED", "guard": null, "quote": "IIT Madras (Indian Institute of Technology Madras), Chennai institute of national importance founded 1959 with West German aid; NIRF #1 overall 2019\u20132025, 630-acre campus, 16 departments, major incubation and patent output.", "reason": "The source states the same fact.", "s": 35.493377685546875}, {"id": 7, "claim": "IIT Madras was founded in 1961 with Soviet aid.", "entities": ["IIT Madras"], "label": false, "status": "UNVERIFIED", "rawVerdict": "NOT_FOUND", "guard": "\"soviet\" from the claim is not in the evidence, so the model's verdict was not trusted.", "quote": "The choice of location involved competition among southern Indian states, and the West German experts sought nearly 1,000 acres of land in Madras.", "reason": "Evidence doesn't confirm every detail.", "s": 28.801292419433594}, {"id": 8, "claim": "Mount Everest was first climbed on 29 May 1953 by Hillary and Tenzing Norgay.", "entities": ["Mount Everest"], "label": true, "status": "UNVERIFIED", "rawVerdict": "NOT_FOUND", "guard": null, "quote": "", "reason": "The sources found don't cover this claim.", "s": 45.30075526237488}, {"id": 9, "claim": "Mount Everest was first climbed in 1950 by Hillary and Tenzing Norgay.", "entities": ["Mount Everest"], "label": false, "status": "UNVERIFIED", "rawVerdict": "NOT_FOUND", "guard": null, "quote": "", "reason": "The sources found don't cover this claim.", "s": 44.750473737716675}, {"id": 10, "claim": "Isaac Newton published the Principia Mathematica in 1687.", "entities": ["Isaac Newton"], "label": true, "status": "UNVERIFIED", "rawVerdict": "NOT_FOUND", "guard": null, "quote": "", "reason": "The sources found don't cover this claim.", "s": 45.06843876838684}, {"id": 11, "claim": "Isaac Newton published the Principia Mathematica in 1705.", "entities": ["Isaac Newton"], "label": false, "status": "UNVERIFIED", "rawVerdict": "NOT_FOUND", "guard": null, "quote": "", "reason": "The sources found don't cover this claim.", "s": 43.939319133758545}, {"id": 12, "claim": "Marie Curie discovered polonium and radium.", "entities": ["Marie Curie"], "label": true, "status": "SUPPORTED", "rawVerdict": "SUPPORTED", "guard": null, "quote": "Marie Curie, born Maria Sklodowska, was a Polish-born physicist and chemist who pioneered radioactivity, discovered polonium and radium, and won Nobel Prizes in 1903 and 1911.", "reason": "The source states the same fact.", "s": 29.253918647766113}, {"id": 13, "claim": "Marie Curie won Nobel Prizes in 1903 and 1921.", "entities": ["Marie Curie"], "label": false, "status": "UNVERIFIED", "rawVerdict": "SUPPORTED", "guard": "\"1921\" from the claim is not in the evidence, so the model's verdict was not trusted.", "quote": "Marie Curie, born Maria Sklodowska, was a Polish-born physicist and chemist who pioneered radioactivity, discovered polonium and radium, and won Nobel Prizes in 1903 and 1911.", "reason": "Evidence doesn't confirm every detail.", "s": 29.40369415283203}, {"id": 14, "claim": "During Apollo 11, Michael Collins orbited the Moon while Neil Armstrong and Buzz Aldrin landed.", "entities": ["Apollo 11"], "label": true, "status": "SUPPORTED", "rawVerdict": "NOT_FOUND", "guard": null, "quote": "During Apollo 11, Michael Collins orbited the Moon while Neil Armstrong and Buzz Aldrin landed.", "reason": "The source states the same fact. (all details matched in code)", "s": 26.543304204940796}, {"id": 15, "claim": "During Apollo 11, Buzz Aldrin stayed in orbit while Neil Armstrong and Michael Collins landed on the Moon.", "entities": ["Apollo 11"], "label": false, "status": "SUPPORTED", "rawVerdict": "NOT_FOUND", "guard": null, "quote": "During Apollo 11, Buzz Aldrin stayed in orbit while Neil Armstrong and Michael Collins landed on the Moon's Sea of Tranquility while Michael Collins orbited in the command module *Columbia*.", "reason": "The source states the same fact. (all details matched in code)", "s": 26.808850288391113}, {"id": 16, "claim": "Srinivasa Ramanujan collaborated with G. H. Hardy at Cambridge.", "entities": ["Srinivasa Ramanujan"], "label": true, "status": "UNVERIFIED", "rawVerdict": "SUPPORTED", "guard": "The model's quote is not in the source (invented evidence), so its verdict was discarded.", "quote": "Srinivasa Ramanujan collaborated with G. H. Hardy at Cambridge.", "reason": "No reliable evidence.", "s": 23.618648052215576}, {"id": 17, "claim": "Srinivasa Ramanujan collaborated with G. H. Hardy at Oxford.", "entities": ["Srinivasa Ramanujan"], "label": false, "status": "UNVERIFIED", "rawVerdict": "NOT_FOUND", "guard": "\"oxford\" from the claim is not in the evidence, so the model's verdict was not trusted.", "quote": "Srinivasa Ramanujan (\u0bb8\u0bcd\u0bb0\u0bc0\u0ba9\u0bbf\u0bb5\u0bbe\u0bb8\u0bcd \u0bb0\u0bbe\u0bae\u0bbe\u0ba9\u0bc1\u0b9c\u0ba9\u0bcd) was an Indian mathematician, born 1887 and died 1920, known for work on partitions, infinite series, and his collaboration with G. H. Hardy at Cambridge.", "reason": "Evidence doesn't confirm every detail.", "s": 33.31171989440918}, {"id": 18, "claim": "The Statue of Liberty was dedicated on October 28, 1886.", "entities": ["Statue of Liberty"], "label": true, "status": "SUPPORTED", "rawVerdict": "SUPPORTED", "guard": null, "quote": "The Statue of Liberty (La Libert\u00e9 \u00e9clairant le monde) is a colossal copper sculpture by Bartholdi with an Eiffel iron framework, a French gift dedicated in New York Harbor on October 28, 1886, later an immigration symbol.", "reason": "The source states the same fact.", "s": 26.601545333862305}, {"id": 19, "claim": "The Statue of Liberty was a gift from Britain to the United States.", "entities": ["Statue of Liberty"], "label": false, "status": "UNVERIFIED", "rawVerdict": "SUPPORTED", "guard": "\"britain\" from the claim is not in the evidence, so the model's verdict was not trusted.", "quote": "The Statue of Liberty (French: *La Libert\u00e9 \u00e9clairant le monde*, ", "reason": "Evidence doesn't confirm every detail.", "s": 29.136595487594604}, {"id": 20, "claim": "C. V. Raman won the Nobel Prize in Physics in 1930.", "entities": ["C. V. Raman"], "label": true, "status": "UNVERIFIED", "rawVerdict": "NOT_FOUND", "guard": null, "quote": "", "reason": "The sources found don't cover this claim.", "s": 44.97917175292969}, {"id": 21, "claim": "C. V. Raman discovered the Raman effect in 1938.", "entities": ["C. V. Raman"], "label": false, "status": "CONTRADICTED", "rawVerdict": "NOT_FOUND", "guard": null, "quote": "C. V. Raman, also known as Chandrasekhara Venkata Raman, was an Indian physicist who discovered the Raman effect in 1928 and won the 1930 Nobel Prize in Physics.", "reason": "Claim says 1938; the source says 1928 / 1930.", "s": 24.000396490097046}, {"id": 22, "claim": "ISRO is headquartered in Bengaluru.", "entities": ["ISRO"], "label": true, "status": "SUPPORTED", "rawVerdict": "SUPPORTED", "guard": null, "quote": "ISRO, the Indian Space Research Organisation, is India's space agency, headquartered in Bengaluru and founded in 1969.", "reason": "The source states the same fact.", "s": 27.650309085845947}, {"id": 23, "claim": "ISRO was founded in 1975.", "entities": ["ISRO"], "label": false, "status": "UNVERIFIED", "rawVerdict": "NOT_FOUND", "guard": "\"1975\" from the claim is not in the evidence, so the model's verdict was not trusted.", "quote": "ISRO, the Indian Space Research Organisation, is India's space agency, headquartered in Bengaluru and founded in 1969.", "reason": "Evidence doesn't confirm every detail.", "s": 22.094434022903442}, {"id": 24, "claim": "The Burj Khalifa is 828 meters tall.", "entities": ["Burj Khalifa"], "label": true, "status": "SUPPORTED", "rawVerdict": "SUPPORTED", "guard": null, "quote": "828-meter (2,716.5 ft) mixed-use skyscraper in Dubai, United Arab Emirates, and the tallest building in the world since its completion in 2010.", "reason": "The source states the same fact.", "s": 32.76112127304077}, {"id": 25, "claim": "The Burj Khalifa has been the tallest building in the world since it opened in 2004.", "entities": ["Burj Khalifa"], "label": false, "status": "UNVERIFIED", "rawVerdict": "SUPPORTED", "guard": "The model's quote is not in the source (invented evidence), so its verdict was discarded.", "quote": "The Burj Khalifa has been the tallest building in the world since it opened in 2004.", "reason": "No reliable evidence.", "s": 22.427035570144653}, {"id": 26, "claim": "Python was created by Guido van Rossum.", "entities": ["Python (programming language)"], "label": true, "status": "SUPPORTED", "rawVerdict": "NOT_FOUND", "guard": null, "quote": "Python is an interpreted, high-level programming language created by Guido van Rossum and first released in 1991, prized for readable syntax and widely used in web development and data science.", "reason": "The source states the same fact. (all details matched in code)", "s": 33.1899209022522}, {"id": 27, "claim": "Python was first released in 2000.", "entities": ["Python (programming language)"], "label": false, "status": "CONTRADICTED", "rawVerdict": "NOT_FOUND", "guard": null, "quote": "Python is an interpreted, high-level programming language created by Guido van Rossum and first released in 1991, prized for readable syntax and widely used in web development and data science.", "reason": "Claim says 2000; the source says 1991.", "s": 27.240720748901367}, {"id": 28, "claim": "The Titanic sank in April 1912 after striking an iceberg.", "entities": ["Titanic"], "label": true, "status": "SUPPORTED", "rawVerdict": "SUPPORTED", "guard": null, "quote": "Titanic was a British-registered ocean liner of the White Star Line, built by Harland & Wolff in Belfast for the transatlantic passenger and mail service between Southampton and New York, that struck an iceberg on her maiden voyage and sank in the North Atlantic on 15 April 1912 with heavy loss of life.", "reason": "The source states the same fact.", "s": 36.498703718185425}, {"id": 29, "claim": "The Titanic was an ocean liner of the Cunard Line.", "entities": ["Titanic"], "label": false, "status": "UNVERIFIED", "rawVerdict": "NOT_FOUND", "guard": null, "quote": "", "reason": "The sources found don't cover this claim.", "s": 50.25871157646179}, {"id": 30, "claim": "Penicillin was discovered by Fleming in 1928.", "entities": ["Penicillin"], "label": true, "status": "UNVERIFIED", "rawVerdict": "NOT_FOUND", "guard": null, "quote": "", "reason": "The sources found don't cover this claim.", "s": 45.85365557670593}, {"id": 31, "claim": "Penicillin was discovered by Louis Pasteur in 1928.", "entities": ["Penicillin", "Louis Pasteur"], "label": false, "status": "UNVERIFIED", "rawVerdict": "NOT_FOUND", "guard": "\"louis\", \"pasteur\" from the claim is not in the evidence, so the model's verdict was not trusted.", "quote": "Penicillin, the first antibiotic, is a beta-lactam from Penicillium molds discovered by Fleming in 1928, developed by Florey and Chain at Oxford, mass-produced by 1943, and honored with the 1945 Nobel Prize; it kills bacteria by blocking peptidoglycan cross-linking.", "reason": "Evidence doesn't confirm every detail.", "s": 35.66174292564392}, {"id": 32, "claim": "Charles Darwin published On the Origin of Species in 1859.", "entities": ["Charles Darwin"], "label": true, "status": "SUPPORTED", "rawVerdict": "SUPPORTED", "guard": null, "quote": "Charles Darwin (1809\u20131882), English naturalist, co-discovered evolution by natural selection with Alfred Russel Wallace, announced jointly in 1858, and published On the Origin of Species in 1859 after the HMS Beagle voyage.", "reason": "The source states the same fact.", "s": 47.67518186569214}, {"id": 33, "claim": "Charles Darwin announced natural selection jointly with Gregor Mendel.", "entities": ["Charles Darwin"], "label": false, "status": "UNVERIFIED", "rawVerdict": "SUPPORTED", "guard": "\"gregor\", \"mendel\" from the claim is not in the evidence, so the model's verdict was not trusted.", "quote": "Charles Darwin (1809\u20131882), English naturalist, co-discovered evolution by natural selection with Alfred Russel Wallace, announced jointly in 1858, and published On the Origin of Species in 1859 after the HMS Beagle voyage.", "reason": "Evidence doesn't confirm every detail.", "s": 43.98389911651611}, {"id": 34, "claim": "The Mona Lisa is a portrait of Lisa Gherardini.", "entities": ["Mona Lisa"], "label": true, "status": "UNVERIFIED", "rawVerdict": "NOT_FOUND", "guard": null, "quote": "", "reason": "The sources found don't cover this claim.", "s": 50.481152296066284}, {"id": 35, "claim": "The Mona Lisa is a portrait of Isabella d'Este.", "entities": ["Mona Lisa"], "label": false, "status": "UNVERIFIED", "rawVerdict": "NOT_FOUND", "guard": null, "quote": "", "reason": "The sources found don't cover this claim.", "s": 51.46970462799072}, {"id": 36, "claim": "The Great Wall of China was listed by UNESCO in 1987.", "entities": ["Great Wall of China"], "label": true, "status": "UNVERIFIED", "rawVerdict": "SUPPORTED", "guard": "The model's quote is not in the source (invented evidence), so its verdict was discarded.", "quote": "UNESCO-listed 1987.", "reason": "No reliable evidence.", "s": 17.187313318252563}, {"id": 37, "claim": "The Great Wall of China was mainly rebuilt by the Han dynasty.", "entities": ["Great Wall of China"], "label": false, "status": "UNVERIFIED", "rawVerdict": "NOT_FOUND", "guard": "\"great\", \"han\" from the claim is not in the evidence, so the model's verdict was not trusted.", "quote": "The wall as it exists today was constructed mainly during the Ming dynasty (1368\u20131644), in a late-1500s effort to safeguard China from steppe tribes. Ming construction is documented in state records, while earlier phases are known largely from archaeology.", "reason": "Evidence doesn't confirm every detail.", "s": 29.340560913085938}, {"id": 38, "claim": "Mahatma Gandhi developed satyagraha in South Africa.", "entities": ["Mahatma Gandhi"], "label": true, "status": "UNVERIFIED", "rawVerdict": "NOT_FOUND", "guard": null, "quote": "", "reason": "The sources found don't cover this claim.", "s": 52.65916919708252}, {"id": 39, "claim": "Mahatma Gandhi developed satyagraha in Kenya.", "entities": ["Mahatma Gandhi"], "label": false, "status": "UNVERIFIED", "rawVerdict": "NOT_FOUND", "guard": null, "quote": "", "reason": "The sources found don't cover this claim.", "s": 52.46117925643921}], "note": "Reference run of the deployed pipeline on a CPU build of the same model (llama.cpp, Q4). Use the button above to rerun live on your own GPU."}
+{
+ "model": "Qwen2.5-1.5B-Instruct Q4 (CPU reference, plain-JSON mode)",
+ "gpu": "llama.cpp CPU reference",
+ "date": "2026-11-26T17:31:47.706Z",
+ "metrics": {
+  "n": 40,
+  "trueSupported": 18,
+  "trueFlagged": 0,
+  "trueUnverified": 2,
+  "falseCaught": 5,
+  "falsePassed": 1,
+  "falseUnverified": 14,
+  "guardCatches": 15,
+  "nTrue": 20,
+  "nFalse": 20,
+  "accuracy": 57.5,
+  "falseCaughtPct": 25,
+  "dangerousPct": 5,
+  "trueSupportedPct": 90
+ },
+ "rawMetrics": {
+  "n": 40,
+  "trueSupported": 17,
+  "trueFlagged": 0,
+  "trueUnverified": 3,
+  "falseCaught": 3,
+  "falsePassed": 13,
+  "falseUnverified": 4,
+  "guardCatches": 0,
+  "nTrue": 20,
+  "nFalse": 20,
+  "accuracy": 50,
+  "falseCaughtPct": 15,
+  "dangerousPct": 65,
+  "trueSupportedPct": 85
+ },
+ "rows": [
+  {
+   "id": 0,
+   "claim": "The Eiffel Tower was built for the 1889 World's Fair.",
+   "entities": [
+    "Eiffel Tower"
+   ],
+   "label": true,
+   "status": "SUPPORTED",
+   "rawVerdict": "SUPPORTED",
+   "guard": null,
+   "quote": "The Eiffel Tower (Tour Eiffel) is a 330-meter wrought-iron lattice tower on the Champ de Mars in Paris, built for the 1889 World's Fair and now one of the most visited ticketed monuments in the world.",
+   "reason": "The quoted sentence states the same fact."
+  },
+  {
+   "id": 1,
+   "claim": "The Eiffel Tower was built for the 1900 World's Fair.",
+   "entities": [
+    "Eiffel Tower"
+   ],
+   "label": false,
+   "status": "CONTRADICTED",
+   "rawVerdict": "SUPPORTED",
+   "guard": null,
+   "quote": "The Eiffel Tower (Tour Eiffel) is a 330-meter wrought-iron lattice tower on the Champ de Mars in Paris, built for the 1889 World's Fair and now one of the most visited ticketed monuments in the world.",
+   "reason": "Claim says 1900; the source says 1889."
+  },
+  {
+   "id": 2,
+   "claim": "The Taj Mahal was built by Shah Jahan in memory of his wife Mumtaz Mahal.",
+   "entities": [
+    "Taj Mahal",
+    "Shah Jahan"
+   ],
+   "label": true,
+   "status": "SUPPORTED",
+   "rawVerdict": "SUPPORTED",
+   "guard": null,
+   "quote": "Taj Mahal (ताज महल) is an ivory-white marble mausoleum in Agra, Uttar Pradesh, India, built by the Mughal emperor Shah Jahan in memory of his favorite wife, Mumtaz Mahal, and completed in its principal parts between 1631 and 1648.",
+   "reason": "The quoted sentence states the same fact."
+  },
+  {
+   "id": 3,
+   "claim": "The Taj Mahal was built by Akbar in memory of his wife.",
+   "entities": [
+    "Taj Mahal",
+    "Akbar"
+   ],
+   "label": false,
+   "status": "UNVERIFIED",
+   "rawVerdict": "SUPPORTED",
+   "guard": "\"akbar\" from the claim is not in the quoted sentence, so the model's verdict was not trusted.",
+   "quote": "Taj Mahal (ताज महल) is an ivory-white marble mausoleum in Agra, Uttar Pradesh, India, built by the Mughal emperor Shah Jahan in memory of his favorite wife, Mumtaz Mahal, and completed in its principal parts between 1631 and 1648.",
+   "reason": "The quoted sentence doesn't confirm every detail."
+  },
+  {
+   "id": 4,
+   "claim": "Chandrayaan-3 made India the fourth country to soft-land on the Moon.",
+   "entities": [
+    "Chandrayaan-3"
+   ],
+   "label": true,
+   "status": "UNVERIFIED",
+   "rawVerdict": "NOT_FOUND",
+   "guard": null,
+   "quote": "",
+   "reason": "The sources found don't cover this claim."
+  },
+  {
+   "id": 5,
+   "claim": "Chandrayaan-3 made India the third country to soft-land on the Moon.",
+   "entities": [
+    "Chandrayaan-3"
+   ],
+   "label": false,
+   "status": "CONTRADICTED",
+   "rawVerdict": "SUPPORTED",
+   "guard": null,
+   "quote": "Chandrayaan-3 (चन्द्रयान-३; Sanskrit/Hindi for \"moon craft\") was a lunar exploration mission of the Indian Space Research Organisation (ISRO) that soft-landed near the Moon's south pole on 23 August 2023, making India the fourth country to achieve a controlled lunar landing, after the United States, the Soviet Union, and China, and the first to land near the lunar south pole.",
+   "reason": "Claim says \"third\"; the source says \"fourth\"."
+  },
+  {
+   "id": 6,
+   "claim": "IIT Madras was founded in 1959 with West German aid.",
+   "entities": [
+    "IIT Madras"
+   ],
+   "label": true,
+   "status": "SUPPORTED",
+   "rawVerdict": "SUPPORTED",
+   "guard": null,
+   "quote": "IIT Madras (Indian Institute of Technology Madras), Chennai institute of national importance founded 1959 with West German aid; NIRF #1 overall 2019–2025, 630-acre campus, 16 departments, major incubation and patent output.",
+   "reason": "The quoted sentence states the same fact."
+  },
+  {
+   "id": 7,
+   "claim": "IIT Madras was founded in 1961 with Soviet aid.",
+   "entities": [
+    "IIT Madras"
+   ],
+   "label": false,
+   "status": "UNVERIFIED",
+   "rawVerdict": "CONTRADICTED",
+   "guard": "The model's quote is not in the source (invented evidence), so its verdict was discarded.",
+   "quote": "IIT Madras was founded in 1961 with Soviet aid.",
+   "reason": "No reliable evidence."
+  },
+  {
+   "id": 8,
+   "claim": "Mount Everest was first climbed on 29 May 1953 by Hillary and Tenzing Norgay.",
+   "entities": [
+    "Mount Everest"
+   ],
+   "label": true,
+   "status": "SUPPORTED",
+   "rawVerdict": "SUPPORTED",
+   "guard": null,
+   "quote": "The 1953 British Mount Everest expedition was the British-led mountaineering expedition that made the first ascent of Everest (8,848 m / 29,028 ft), when Edmund Hillary and the Sherpa Tenzing Norgay reached the summit on 29 May 1953 by the South Col and south-east ridge.",
+   "reason": "The quoted sentence states the same fact."
+  },
+  {
+   "id": 9,
+   "claim": "Mount Everest was first climbed in 1950 by Hillary and Tenzing Norgay.",
+   "entities": [
+    "Mount Everest"
+   ],
+   "label": false,
+   "status": "UNVERIFIED",
+   "rawVerdict": "SUPPORTED",
+   "guard": "\"1950\" from the claim is not in the quoted sentence, so the model's verdict was not trusted.",
+   "quote": "Mount Everest (Sagarmatha), Earth's highest mountain at 8,848.86 m on the Nepal-Tibet border, formed by the ongoing India-Eurasia plate collision; first climbed 29 May 1953 by Hillary and Tenzing Norgay.",
+   "reason": "The quoted sentence doesn't confirm every detail."
+  },
+  {
+   "id": 10,
+   "claim": "Isaac Newton published the Principia Mathematica in 1687.",
+   "entities": [
+    "Isaac Newton"
+   ],
+   "label": true,
+   "status": "SUPPORTED",
+   "rawVerdict": "SUPPORTED",
+   "guard": null,
+   "quote": "Sir Isaac Newton (1642–1727) was an English mathematician and physicist who formulated the laws of motion and universal gravitation in his Principia Mathematica of 1687.",
+   "reason": "The quoted sentence states the same fact."
+  },
+  {
+   "id": 11,
+   "claim": "Isaac Newton published the Principia Mathematica in 1705.",
+   "entities": [
+    "Isaac Newton"
+   ],
+   "label": false,
+   "status": "UNVERIFIED",
+   "rawVerdict": "SUPPORTED",
+   "guard": "\"1705\" from the claim is not in the quoted sentence, so the model's verdict was not trusted.",
+   "quote": "Sir Isaac Newton (1642–1727) was an English mathematician and physicist who formulated the laws of motion and universal gravitation in his Principia Mathematica of 1687.",
+   "reason": "The quoted sentence doesn't confirm every detail."
+  },
+  {
+   "id": 12,
+   "claim": "Marie Curie discovered polonium and radium.",
+   "entities": [
+    "Marie Curie"
+   ],
+   "label": true,
+   "status": "SUPPORTED",
+   "rawVerdict": "SUPPORTED",
+   "guard": null,
+   "quote": "Marie Curie, born Maria Sklodowska, was a Polish-born physicist and chemist who pioneered radioactivity, discovered polonium and radium, and won Nobel Prizes in 1903 and 1911.",
+   "reason": "The quoted sentence states the same fact."
+  },
+  {
+   "id": 13,
+   "claim": "Marie Curie won Nobel Prizes in 1903 and 1921.",
+   "entities": [
+    "Marie Curie"
+   ],
+   "label": false,
+   "status": "UNVERIFIED",
+   "rawVerdict": "SUPPORTED",
+   "guard": "\"1921\" from the claim is not in the quoted sentence, so the model's verdict was not trusted.",
+   "quote": "Marie Curie, born Maria Sklodowska, was a Polish-born physicist and chemist who pioneered radioactivity, discovered polonium and radium, and won Nobel Prizes in 1903 and 1911.",
+   "reason": "The quoted sentence doesn't confirm every detail."
+  },
+  {
+   "id": 14,
+   "claim": "During Apollo 11, Michael Collins orbited the Moon while Neil Armstrong and Buzz Aldrin landed.",
+   "entities": [
+    "Apollo 11"
+   ],
+   "label": true,
+   "status": "SUPPORTED",
+   "rawVerdict": "SUPPORTED",
+   "guard": null,
+   "quote": "Apollo 11 was the 1969 NASA mission on which Neil Armstrong and Buzz Aldrin made the first crewed landing on the Moon, while Michael Collins orbited above.",
+   "reason": "The quoted sentence states the same fact."
+  },
+  {
+   "id": 15,
+   "claim": "During Apollo 11, Buzz Aldrin stayed in orbit while Neil Armstrong and Michael Collins landed on the Moon.",
+   "entities": [
+    "Apollo 11"
+   ],
+   "label": false,
+   "status": "SUPPORTED",
+   "rawVerdict": "SUPPORTED",
+   "guard": null,
+   "quote": "Apollo 11 was the 1969 NASA mission on which Neil Armstrong and Buzz Aldrin made the first crewed landing on the Moon, while Michael Collins orbited above.",
+   "reason": "The quoted sentence states the same fact."
+  },
+  {
+   "id": 16,
+   "claim": "Srinivasa Ramanujan collaborated with G. H. Hardy at Cambridge.",
+   "entities": [
+    "Srinivasa Ramanujan"
+   ],
+   "label": true,
+   "status": "UNVERIFIED",
+   "rawVerdict": "SUPPORTED",
+   "guard": "The model's quote is not in the source (invented evidence), so its verdict was discarded.",
+   "quote": "Srinivasa Ramanujan collaborated with G. H. Hardy at Cambridge.",
+   "reason": "No reliable evidence."
+  },
+  {
+   "id": 17,
+   "claim": "Srinivasa Ramanujan collaborated with G. H. Hardy at Oxford.",
+   "entities": [
+    "Srinivasa Ramanujan"
+   ],
+   "label": false,
+   "status": "UNVERIFIED",
+   "rawVerdict": "SUPPORTED",
+   "guard": "The model's quote is not in the source (invented evidence), so its verdict was discarded.",
+   "quote": "Srinivasa Ramanujan collaborated with G. H. Hardy at Oxford.",
+   "reason": "No reliable evidence."
+  },
+  {
+   "id": 18,
+   "claim": "The Statue of Liberty was dedicated on October 28, 1886.",
+   "entities": [
+    "Statue of Liberty"
+   ],
+   "label": true,
+   "status": "SUPPORTED",
+   "rawVerdict": "SUPPORTED",
+   "guard": null,
+   "quote": "The Statue of Liberty (French: *La Liberté éclairant le monde*, \"Liberty Enlightening the World\") is a colossal copper sculpture on Liberty Island in New York Harbor, given by the people of France to the people of the United States and dedicated on October 28, 1886.",
+   "reason": "The quoted sentence states the same fact."
+  },
+  {
+   "id": 19,
+   "claim": "The Statue of Liberty was a gift from Britain to the United States.",
+   "entities": [
+    "Statue of Liberty"
+   ],
+   "label": false,
+   "status": "CONTRADICTED",
+   "rawVerdict": "NOT_FOUND",
+   "guard": null,
+   "quote": "The unveiling ceremony on the island was attended by 2,000 to 2,500 men; President Grover Cleveland accepted the statue on behalf of the United States as a gift of friendship from France.",
+   "reason": "Claim says \"Britain\"; the source says \"France\"."
+  },
+  {
+   "id": 20,
+   "claim": "C. V. Raman won the Nobel Prize in Physics in 1930.",
+   "entities": [
+    "C. V. Raman"
+   ],
+   "label": true,
+   "status": "SUPPORTED",
+   "rawVerdict": "NOT_FOUND",
+   "guard": null,
+   "quote": "Raman, also known as Chandrasekhara Venkata Raman, was an Indian physicist who discovered the Raman effect in 1928 and won the 1930 Nobel Prize in Physics.",
+   "reason": "The quoted sentence states the same fact."
+  },
+  {
+   "id": 21,
+   "claim": "C. V. Raman discovered the Raman effect in 1938.",
+   "entities": [
+    "C. V. Raman"
+   ],
+   "label": false,
+   "status": "CONTRADICTED",
+   "rawVerdict": "CONTRADICTED",
+   "guard": null,
+   "quote": "Raman, also known as Chandrasekhara Venkata Raman, was an Indian physicist who discovered the Raman effect in 1928 and won the 1930 Nobel Prize in Physics.",
+   "reason": "Claim says 1938; the source says 1928 / 1930."
+  },
+  {
+   "id": 22,
+   "claim": "ISRO is headquartered in Bengaluru.",
+   "entities": [
+    "ISRO"
+   ],
+   "label": true,
+   "status": "SUPPORTED",
+   "rawVerdict": "SUPPORTED",
+   "guard": null,
+   "quote": "ISRO, the Indian Space Research Organisation, is India's space agency, headquartered in Bengaluru and founded in 1969.",
+   "reason": "The quoted sentence states the same fact."
+  },
+  {
+   "id": 23,
+   "claim": "ISRO was founded in 1975.",
+   "entities": [
+    "ISRO"
+   ],
+   "label": false,
+   "status": "UNVERIFIED",
+   "rawVerdict": "SUPPORTED",
+   "guard": "\"1975\" from the claim is not in the quoted sentence, so the model's verdict was not trusted.",
+   "quote": "ISRO, the Indian Space Research Organisation, is India's space agency, headquartered in Bengaluru and founded in 1969.",
+   "reason": "The quoted sentence doesn't confirm every detail."
+  },
+  {
+   "id": 24,
+   "claim": "The Burj Khalifa is 828 meters tall.",
+   "entities": [
+    "Burj Khalifa"
+   ],
+   "label": true,
+   "status": "SUPPORTED",
+   "rawVerdict": "SUPPORTED",
+   "guard": null,
+   "quote": "Dubai, in the United Arab Emirates, has one of the densest concentrations of very tall buildings in the world, headed by the 828 m (2,717 ft) Burj Khalifa, the tallest building on Earth since its inauguration on January 4, 2010.",
+   "reason": "The quoted sentence states the same fact."
+  },
+  {
+   "id": 25,
+   "claim": "The Burj Khalifa has been the tallest building in the world since it opened in 2004.",
+   "entities": [
+    "Burj Khalifa"
+   ],
+   "label": false,
+   "status": "CONTRADICTED",
+   "rawVerdict": "SUPPORTED",
+   "guard": null,
+   "quote": "Dubai, in the United Arab Emirates, has one of the densest concentrations of very tall buildings in the world, headed by the 828 m (2,717 ft) Burj Khalifa, the tallest building on Earth since its inauguration on January 4, 2010.",
+   "reason": "Claim says 2004; the source says 2010."
+  },
+  {
+   "id": 26,
+   "claim": "Python was created by Guido van Rossum.",
+   "entities": [
+    "Python (programming language)"
+   ],
+   "label": true,
+   "status": "SUPPORTED",
+   "rawVerdict": "SUPPORTED",
+   "guard": null,
+   "quote": "Guido van Rossum (born 1956 in The Hague, Netherlands) is a Dutch programmer who created the Python programming language and led its development for nearly three decades, first as its self-described \"Benevolent Dictator for Life\" (BDFL) and later as a community elder after Python adopted an elected steering council.",
+   "reason": "The quoted sentence states the same fact."
+  },
+  {
+   "id": 27,
+   "claim": "Python was first released in 2000.",
+   "entities": [
+    "Python (programming language)"
+   ],
+   "label": false,
+   "status": "UNVERIFIED",
+   "rawVerdict": "NOT_FOUND",
+   "guard": "\"2000\" from the claim is not in the quoted sentence, so the model's verdict was not trusted.",
+   "quote": "Python 3.13 was first released on 7 October 2024 and remains in security support until October 2029; Python 3.14 followed on 7 October 2025 with support to October 2030; and Python 3.15, released 9 October 2026, is supported to October 2031.",
+   "reason": "The quoted sentence doesn't confirm every detail."
+  },
+  {
+   "id": 28,
+   "claim": "The Titanic sank in April 1912 after striking an iceberg.",
+   "entities": [
+    "Titanic"
+   ],
+   "label": true,
+   "status": "SUPPORTED",
+   "rawVerdict": "SUPPORTED",
+   "guard": null,
+   "quote": "RMS Titanic was a British White Star Line ocean liner that sank on her maiden voyage after striking an iceberg in April 1912, with the loss of about 1,500 lives.",
+   "reason": "The quoted sentence states the same fact."
+  },
+  {
+   "id": 29,
+   "claim": "The Titanic was an ocean liner of the Cunard Line.",
+   "entities": [
+    "Titanic"
+   ],
+   "label": false,
+   "status": "UNVERIFIED",
+   "rawVerdict": "CONTRADICTED",
+   "guard": "\"cunard\" from the claim is not in the quoted sentence, so the model's verdict was not trusted.",
+   "quote": "RMS Titanic was a British-registered ocean liner of the White Star Line, built by Harland & Wolff in Belfast for the transatlantic passenger and mail service between Southampton and New York, that struck an iceberg on her maiden voyage and sank in the North Atlantic on 15 April 1912 with heavy loss of life.",
+   "reason": "The quoted sentence doesn't confirm every detail."
+  },
+  {
+   "id": 30,
+   "claim": "Penicillin was discovered by Fleming in 1928.",
+   "entities": [
+    "Penicillin"
+   ],
+   "label": true,
+   "status": "SUPPORTED",
+   "rawVerdict": "SUPPORTED",
+   "guard": null,
+   "quote": "Penicillin, the first antibiotic, is a beta-lactam from Penicillium molds discovered by Fleming in 1928, developed by Florey and Chain at Oxford, mass-produced by 1943, and honored with the 1945 Nobel Prize; it kills bacteria by blocking peptidoglycan cross-linking.",
+   "reason": "The quoted sentence states the same fact."
+  },
+  {
+   "id": 31,
+   "claim": "Penicillin was discovered by Louis Pasteur in 1928.",
+   "entities": [
+    "Penicillin",
+    "Louis Pasteur"
+   ],
+   "label": false,
+   "status": "UNVERIFIED",
+   "rawVerdict": "SUPPORTED",
+   "guard": "\"louis\", \"pasteur\" from the claim is not in the quoted sentence, so the model's verdict was not trusted.",
+   "quote": "Penicillin, the first antibiotic, is a beta-lactam from Penicillium molds discovered by Fleming in 1928, developed by Florey and Chain at Oxford, mass-produced by 1943, and honored with the 1945 Nobel Prize; it kills bacteria by blocking peptidoglycan cross-linking.",
+   "reason": "The quoted sentence doesn't confirm every detail."
+  },
+  {
+   "id": 32,
+   "claim": "Charles Darwin published On the Origin of Species in 1859.",
+   "entities": [
+    "Charles Darwin"
+   ],
+   "label": true,
+   "status": "SUPPORTED",
+   "rawVerdict": "SUPPORTED",
+   "guard": null,
+   "quote": "On the Origin of Species is a scientific treatise by the English naturalist Charles Darwin, published by John Murray in London in November 1859 under the full title *On the origin of species by means of natural selection, or the preservation of favoured races in the struggle for life*.",
+   "reason": "The quoted sentence states the same fact."
+  },
+  {
+   "id": 33,
+   "claim": "Charles Darwin announced natural selection jointly with Gregor Mendel.",
+   "entities": [
+    "Charles Darwin"
+   ],
+   "label": false,
+   "status": "UNVERIFIED",
+   "rawVerdict": "SUPPORTED",
+   "guard": "\"gregor\", \"mendel\" from the claim is not in the quoted sentence, so the model's verdict was not trusted.",
+   "quote": "Charles Darwin (1809–1882), English naturalist, co-discovered evolution by natural selection with Alfred Russel Wallace, announced jointly in 1858, and published On the Origin of Species in 1859 after the HMS Beagle voyage.",
+   "reason": "The quoted sentence doesn't confirm every detail."
+  },
+  {
+   "id": 34,
+   "claim": "The Mona Lisa is a portrait of Lisa Gherardini.",
+   "entities": [
+    "Mona Lisa"
+   ],
+   "label": true,
+   "status": "SUPPORTED",
+   "rawVerdict": "NOT_FOUND",
+   "guard": null,
+   "quote": "The Mona Lisa is an oil portrait on poplar panel painted by Leonardo da Vinci between approximately 1503 and 1519, believed to depict Lisa Gherardini, the wife of the Florentine merchant Francesco del Giocondo.",
+   "reason": "The quoted sentence states the same fact."
+  },
+  {
+   "id": 35,
+   "claim": "The Mona Lisa is a portrait of Isabella d'Este.",
+   "entities": [
+    "Mona Lisa"
+   ],
+   "label": false,
+   "status": "UNVERIFIED",
+   "rawVerdict": "SUPPORTED",
+   "guard": "\"mona\" from the claim is not in the quoted sentence, so the model's verdict was not trusted.",
+   "quote": "Sparse references dating from 1517, 1525, and 1540 had left room for alternative theories, including the proposal that the painting is an idealized tribute to Isabella of Aragon, Duchess of Milan, rather than a portrait of Lisa Gherardini.",
+   "reason": "The quoted sentence doesn't confirm every detail."
+  },
+  {
+   "id": 36,
+   "claim": "The Great Wall of China was listed by UNESCO in 1987.",
+   "entities": [
+    "Great Wall of China"
+   ],
+   "label": true,
+   "status": "SUPPORTED",
+   "rawVerdict": "SUPPORTED",
+   "guard": null,
+   "quote": "Great Wall of China (长城), a series of walls, fortresses, and beacon towers across northern China built from the 3rd century BC to the 17th century AD, joined under Qin Shi Huang and mainly rebuilt by the Ming; over 20,000 km, UNESCO-listed 1987.",
+   "reason": "The quoted sentence states the same fact."
+  },
+  {
+   "id": 37,
+   "claim": "The Great Wall of China was mainly rebuilt by the Han dynasty.",
+   "entities": [
+    "Great Wall of China"
+   ],
+   "label": false,
+   "status": "UNVERIFIED",
+   "rawVerdict": "NOT_FOUND",
+   "guard": "\"han\" from the claim is not in the quoted sentence, so the model's verdict was not trusted.",
+   "quote": "Great Wall of China (长城), a series of walls, fortresses, and beacon towers across northern China built from the 3rd century BC to the 17th century AD, joined under Qin Shi Huang and mainly rebuilt by the Ming; over 20,000 km, UNESCO-listed 1987.",
+   "reason": "The quoted sentence doesn't confirm every detail."
+  },
+  {
+   "id": 38,
+   "claim": "Mahatma Gandhi developed satyagraha in South Africa.",
+   "entities": [
+    "Mahatma Gandhi"
+   ],
+   "label": true,
+   "status": "SUPPORTED",
+   "rawVerdict": "SUPPORTED",
+   "guard": null,
+   "quote": "Mahatma Gandhi (મોહનદાસ કરમચંદ ગાંધી), born Mohandas Karamchand Gandhi (1869–1948), was an Indian political and moral leader who developed satyagraha, the method of nonviolent resistance, in South Africa and then led India's independence movement against British colonial rule until his assassination in 1948.",
+   "reason": "The quoted sentence states the same fact."
+  },
+  {
+   "id": 39,
+   "claim": "Mahatma Gandhi developed satyagraha in Kenya.",
+   "entities": [
+    "Mahatma Gandhi"
+   ],
+   "label": false,
+   "status": "UNVERIFIED",
+   "rawVerdict": "NOT_FOUND",
+   "guard": "\"kenya\" from the claim is not in the quoted sentence, so the model's verdict was not trusted.",
+   "quote": "Mahatma Gandhi (મોહનદાસ કરમચંદ ગાંધી), born Mohandas Karamchand Gandhi (1869–1948), was an Indian political and moral leader who developed satyagraha, the method of nonviolent resistance, in South Africa and then led India's independence movement against British colonial rule until his assassination in 1948.",
+   "reason": "The quoted sentence doesn't confirm every detail."
+  }
+ ],
+ "note": "Reference run of the deployed pipeline on a CPU build of the same model. Use the button above to rerun live on your own GPU."
+}

@@ -41,7 +41,7 @@ export const clipText = (t, n) => {
 const cleanMd = (s) => (s || "").replace(/\[([^\]]+)\]\([^)]+\)/g, "$1").replace(/\*\*/g, "").replace(/\[\d+\]/g, "").replace(/\s+/g, " ").trim();
 
 // Opinion/flourish predicates are not checkable facts; drop claims built on them (code-side net under the prompt).
-const SUBJECTIVE = /\b(beacon|testament|tapestry|marvels?|masterpiece|breathtaking|iconic|stunning|remarkable|visionary|perseverance|inspiring|world-class|renowned|unwavering|vibrant|bustling|ever-evolving|game-changer|pivotal|innovation hub|low-cost innovation|rich (?:history|heritage)|must-(?:see|visit))\b/i;
+const SUBJECTIVE = /\b(beacon|testament|tapestry|marvels?|masterpiece|breathtaking|iconic|stunning|remarkable|visionary|perseverance|inspiring|world-class|renowned|unwavering|vibrant|bustling|ever-evolving|game-changer|pivotal|innovation hub|low-cost innovation|rich (?:history|heritage)|must-(?:see|visit)|significant|noteworthy|impressive|important role|plays? a (?:key|vital|crucial) role)\b/i;
 
 // ---------- prompts ----------
 // Small models without grammar constraints invent their own JSON shape, so each prompt asks for the
@@ -120,23 +120,30 @@ export function normVerify(data) {
 }
 
 // ---------- guards ----------
-// A verdict is only allowed to stand if the model can point at the exact evidence.
-export function quoteFound(quote, passages) {
+const splitSents = (t) => t.split(/(?<=[.!?])\s+(?=[A-Z0-9])/).map(s => s.trim()).filter(s => s.length > 8);
+
+// Locate the REAL source sentence the model's quote best matches, and return that sentence — never the
+// model's own text. A small model can smuggle a wrong value into its "quote"; every downstream check
+// must run against verified source text, so fabricated evidence can't support anything.
+export function locateEvidence(quote, passages) {
   const q = norm(quote);
   if (q.split(" ").length < 4) return null;
   for (let i = 0; i < passages.length; i++) {
-    const p = norm(passages[i].text);
-    if (p.includes(q)) return { index: i, exact: true };
+    if (norm(passages[i].text).includes(q)) {
+      const sent = splitSents(passages[i].text).find(s => norm(s).includes(q));
+      return { index: i, sentence: sent || passages[i].text, exact: true };
+    }
   }
-  // tolerate tiny copy slips: ≥90% of quote tokens appear in order-insensitive bag of one passage
   const qt = tokens(quote);
-  let best = { index: -1, score: 0 };
+  let best = { score: 0, index: -1, sentence: "" };
   passages.forEach((p, i) => {
-    const bag = new Set(tokens(p.text));
-    const s = qt.filter(t => bag.has(t)).length / qt.length;
-    if (s > best.score) best = { index: i, score: s };
+    for (const s of splitSents(p.text)) {
+      const bag = new Set(tokens(s));
+      const sc = qt.filter(t => bag.has(t)).length / Math.max(1, qt.length);
+      if (sc > best.score) best = { score: sc, index: i, sentence: s };
+    }
   });
-  return best.score >= 0.9 ? { index: best.index, exact: false } : null;
+  return best.score >= 0.6 ? best : null;
 }
 
 const ORD = "first second third fourth fifth sixth seventh eighth ninth tenth".split(" ");
@@ -187,7 +194,7 @@ export function applyGuards(claim, raw, passages) {
     if (fb) return { ...out, ...fb };
     out.reason = "The sources found don't cover this claim."; return out;
   }
-  const hit = quoteFound(raw.quote, passages);
+  const hit = locateEvidence(raw.quote, passages);
   if (!hit) {
     const fb = codeConflict(claim, passages);
     if (fb) return { ...out, ...fb };
@@ -195,11 +202,17 @@ export function applyGuards(claim, raw, passages) {
     out.reason = "No reliable evidence."; return out;
   }
   out.evidenceIndex = hit.index;
-  const quote = raw.quote, ev = passages[hit.index].text;
+  // From here on the "quote" is the verified source sentence, not the model's text — this is also what
+  // the card displays, so the highlighted evidence is always real.
+  const quote = hit.sentence, ev = hit.sentence;
+  out.quote = hit.sentence;
+  const passageText = passages[hit.index].text;
   const hard = hardDetails(claim);
-  // A claim is only "supported" if the CITED SENTENCE carries its key facts. Checking the whole
-  // passage instead lets a year mentioned elsewhere wrongly confirm a different claim.
-  const missingQuote = hard.filter(d => !hasTok(quote, d));
+  // The discriminating values (numbers, ordinals) must appear in the CITED SENTENCE — those are what a
+  // model fakes. Proper-noun names only need to be somewhere in the passage: they establish the topic,
+  // not the disputed fact. This gives recall on split sentences without re-opening the false-green hole.
+  const isDiscriminating = (d) => /^\d/.test(d) || ORD.includes(d);
+  const missingQuote = hard.filter(d => isDiscriminating(d) ? !hasTok(quote, d) : !hasTok(passageText, d));
   const missingAll = hard.filter(d => !hasTok(allText, d));
 
   // 1) Typed conflicts, decided in code: a year or ordinal the claim states that appears nowhere in the

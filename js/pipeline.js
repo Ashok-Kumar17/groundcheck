@@ -34,6 +34,9 @@ export const keywords = (s, max = 8) => [...new Set(tokens(s).filter(w => !STOP.
 export const numbersIn = (s) => [...new Set((norm(s).match(/\b\d+(?:\.\d+)?\b/g) || []).filter(n => n.length > 0))];
 const cleanMd = (s) => (s || "").replace(/\[([^\]]+)\]\([^)]+\)/g, "$1").replace(/\*\*/g, "").replace(/\[\d+\]/g, "").replace(/\s+/g, " ").trim();
 
+// Opinion/flourish predicates are not checkable facts; drop claims built on them (code-side net under the prompt).
+const SUBJECTIVE = /\b(beacon|testament|tapestry|marvels?|masterpiece|breathtaking|iconic|stunning|remarkable|visionary|perseverance|inspiring|world-class|renowned|unwavering|vibrant|bustling|ever-evolving|game-changer|pivotal|innovation hub|low-cost innovation|rich (?:history|heritage)|must-(?:see|visit))\b/i;
+
 // ---------- prompts ----------
 const EXTRACT_SYS = `You turn ONE sentence into short, self-contained factual claims that can be checked in an encyclopedia.
 Rules:
@@ -153,6 +156,8 @@ export function applyGuards(claim, raw, passages) {
   }
   const hit = quoteFound(raw.quote, passages);
   if (!hit) {
+    const fb = codeConflict(claim, passages);
+    if (fb) return { ...out, ...fb };
     out.guard = "The model's quote is not in the source (invented evidence), so its verdict was discarded.";
     out.reason = "No reliable evidence."; return out;
   }
@@ -261,6 +266,7 @@ export async function runGroundcheck(text, { llm, ep, onEvent = () => {}, opts =
     onEvent({ type: "llm", stage: "extract", usage });
     for (const c of (data?.claims || []).slice(0, 4)) {
       if (!c.claim || c.claim.split(" ").length < 3) continue;
+      if (SUBJECTIVE.test(c.claim)) continue; // flourish, not a checkable fact
       const item = { id: claims.length, sentence: i, span: [s.start, s.end], claim: c.claim.trim(), entities: (c.entities || []).filter(Boolean).slice(0, 3) };
       claims.push(item);
       onEvent({ type: "claim", claim: item });

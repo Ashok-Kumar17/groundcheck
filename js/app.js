@@ -301,8 +301,8 @@ function renderFlow() {
     ["on device · LLM", "Extract claims", "One sentence at a time → short self-contained claims + the names they mention."],
     ["network · names only", "Link", "One batched Edgepedia /resolve call maps names to articles."],
     ["network · keywords", "Retrieve", "Edgepedia returns the best-matching paragraphs per article; re-ranked locally."],
-    ["on device · LLM", "Quote & compare", "Model quotes one sentence and lists claim detail vs source detail (JSON schema)."],
-    ["on device · code", "Guards", "Quote must exist in the source. Details compared in code. Numbers and names must match."],
+    ["on device · LLM", "Quote & compare", "Model quotes one sentence and lists claim detail vs source detail as JSON."],
+    ["on device · code", "Guards", "Evidence is re-located in the real source. Numbers, ordinals and opposites (north/south) compared in code."],
   ];
   $("#flow").innerHTML = steps.map(([e, b, s]) => `<div class="step ${e.startsWith("network") ? "net" : e.includes("code") ? "code" : ""}"><em>${e}</em><b>${b}</b><span>${s}</span></div>`).join("");
 }

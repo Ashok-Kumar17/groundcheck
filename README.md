@@ -2,42 +2,44 @@
 
 **Fact-checks AI-written text on your own device and shows the exact source sentence behind every verdict.**
 
-Live: https://ashok-kumar17.github.io/groundcheck/
+**Live demo:** https://ashok-kumar17.github.io/groundcheck/ (Chrome or Edge with WebGPU; there's also a *Replay a recorded run* button for machines without it)
 
-Paste a paragraph from ChatGPT, Gemini or any other assistant. A small language model running **in your browser on your GPU** (WebLLM + WebGPU) splits the paragraph into claims. It looks each claim up in [Edgepedia](https://www.edgepedia.org) through its public API and marks it **supported**, **contradicted** or **couldn't verify**, with the source sentence highlighted and linked.
+Paste a paragraph from ChatGPT, Gemini or any other assistant. A small language model running **in your browser on your GPU** (WebLLM + WebGPU, Qwen2.5 1.5B) splits it into claims. It looks each claim up in [Edgepedia](https://www.edgepedia.org) through its public API and marks it **supported**, **contradicted** or **couldn't verify**, with the real source sentence highlighted and linked.
 
-## Why
+## Result
 
-AI writing is fluent and confident, and it is often wrong in small ways: a year, an ordinal, a swapped name. "Sounds like AI" detectors don't tell you whether a sentence is true. Groundcheck does, and it shows you the evidence.
+40 hand-labelled claims (`js/evalset.js`): 20 true, each stated in its Edgepedia article, and 20 with one planted error (wrong year, ordinal, person, place or role).
+
+|                                   | Same model asked directly | Groundcheck |
+|-----------------------------------|:---:|:---:|
+| False claims shown as **supported** | **65%** | **5%** |
+| True claims confirmed             | 85% | 90% |
+
+A wrong green tick is the costly error, so the system prefers an honest "couldn't verify". The one false claim that still passes is a role swap ("Aldrin stayed in orbit while Armstrong and Collins landed"): every name is present in the source, and only the roles are wrong. Catching that needs relation-level checking, which is the next step.
 
 ## How it works
 
 ```
-text ─► sentences ─► [LLM, on device] atomic claims + entity names
-     ─► [Edgepedia /resolve] names → articles  (one batched call)
-     ─► [Edgepedia /articles?q=] best paragraphs, re-ranked locally
-     ─► [LLM, on device] quote one sentence + list "claim says / source says" (JSON-schema constrained)
+text ─► sentences ─► [LLM, on device] short claims ─► [code] entity names
+     ─► [Edgepedia /resolve + /search] articles ─► [Edgepedia /articles?q=] best paragraphs, re-ranked locally
+     ─► [LLM, on device] quote one sentence + "claim says / source says" pairs
      ─► [code] guards ─► verdict
 ```
 
-**Design decisions**
+**Design decisions, each one forced by a failure seen in testing**
 
-- **The model doesn't judge.** Asked "is this supported?", a 1.5B model says yes to almost anything. Here the model only extracts: one quote, plus what the claim says and what the source says for each detail. Plain code compares the two.
-- **No quote, no verdict.** If the quoted sentence isn't in the retrieved text, the model invented its evidence, and the claim becomes *couldn't verify*.
-- **The details must match.** A "supported" verdict stands only if every number, ordinal and proper name in the claim also appears in the evidence.
-- **Private.** The document never leaves the device. Edgepedia only receives entity names and a few keywords per claim. The *Under the hood* tab counts every byte sent.
-- **Honest failure.** A wrong green tick is the costly error, so ambiguous cases fall to *couldn't verify*.
-
-## Benchmark
-
-`js/evalset.js` holds 40 hand-labelled claims: 20 true (each stated in its Edgepedia article) and 20 with one planted error. The **Benchmark** tab runs them on your own GPU and compares Groundcheck with the same model asked directly.
+1. **The model doesn't get the final word.** Asked "is this supported?", a 1.5B model says yes to 65% of false claims. Here the model only extracts a quote and detail pairs. Code decides.
+2. **Evidence is re-located in the real source.** Small models sometimes copy the claim's wrong value into their own "quote". Groundcheck finds the actual source sentence the quote points at and runs every check against that, so invented evidence can't support anything.
+3. **Discriminating details must be in the cited sentence.** Numbers, ordinals and opposites (north/south, first/last) must appear in the cited sentence itself. If they appear only somewhere else in a long article, they don't count. A claim saying "1975" followed by a source sentence saying "1969" is flagged as a contradiction in code.
+4. **Robust on cheap hardware.** On an 8 GB shared-memory laptop GPU, grammar-constrained decoding made the GPU drop out. Groundcheck instead uses free-form JSON with a tolerant parser and shape normalisers, plus chunked prefill to stay under Windows' GPU watchdog.
+5. **Private.** The document never leaves the device. Edgepedia receives only entity names and a few keywords per claim, and the *Under the hood* tab counts every byte sent.
 
 ## Run locally
 
-Any static server works: `python -m http.server`, then open `http://localhost:8000` in Chrome or Edge. `tools/harness.mjs` runs the same pipeline in Node against a llama.cpp server, for prompt iteration.
+Any static server: `python -m http.server`, then open `http://localhost:8000`. `tools/harness.mjs` runs the identical pipeline in Node against a llama.cpp server (`node tools/harness.mjs eval`) to reproduce the benchmark.
 
 ## Credits
 
-Article text from Edgepedia (EdgeChat), Edgepedia Community License 1.0. Each card links to and credits its article. Models: Qwen2.5 / Llama 3.2 via [WebLLM](https://github.com/mlc-ai/web-llm).
+Article text from Edgepedia (EdgeChat), Edgepedia Community License 1.0. Each card links to and credits its article. Models: Qwen2.5 via [WebLLM](https://github.com/mlc-ai/web-llm).
 
 Built by Ashok Kumar Meena, IIT Madras.

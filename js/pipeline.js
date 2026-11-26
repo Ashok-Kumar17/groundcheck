@@ -197,7 +197,9 @@ export function applyGuards(claim, raw, passages) {
   out.evidenceIndex = hit.index;
   const quote = raw.quote, ev = passages[hit.index].text;
   const hard = hardDetails(claim);
-  const missingEv = hard.filter(d => !hasTok(ev, d));
+  // A claim is only "supported" if the CITED SENTENCE carries its key facts. Checking the whole
+  // passage instead lets a year mentioned elsewhere wrongly confirm a different claim.
+  const missingQuote = hard.filter(d => !hasTok(quote, d));
   const missingAll = hard.filter(d => !hasTok(allText, d));
 
   // 1) Typed conflicts, decided in code: a year or ordinal the claim states that appears nowhere in the
@@ -213,32 +215,32 @@ export function applyGuards(claim, raw, passages) {
     return { ...out, status: "CONTRADICTED", decidedBy: "code", reason: `Claim says "${badOrd}"; the source says "${qOrd[0]}".` };
   }
 
-  // 2) Short slot comparison (the model extracts, code compares).
+  // 2) Short slot comparison (the model extracts, code compares) — source_says must really be in the quote.
   let mismatch = null, matched = 0, usable = 0;
   for (const c of raw.checks || []) {
     const cs = (c.claim_says || "").trim(), ss = (c.source_says || "").trim();
     if (!short(cs) || !short(ss) || !contains(quote, ss, 0.8)) continue;
     usable++;
-    if (contains(ev, cs, 1) || norm(cs) === norm(ss)) matched++;
+    if (contains(quote, cs, 1) || norm(cs) === norm(ss)) matched++;
     else if (!contains(cs, ss, 1) && !contains(ss, cs, 1)) mismatch = mismatch || { claim: cs, source: ss };
   }
-  if (mismatch && missingEv.length) {
+  if (mismatch) {
     return { ...out, status: "CONTRADICTED", decidedBy: "code", reason: `Claim says "${mismatch.claim}"; the source says "${mismatch.source}".` };
   }
-  if (raw.verdict === "CONTRADICTED" && missingEv.length) {
-    return { ...out, status: "CONTRADICTED", reason: `The source states this differently (${missingEv.map(d => `"${d}"`).join(", ")} not in it).` };
+
+  // 3) Try a code-detected typed conflict before trusting the model's verdict.
+  const fb = codeConflict(claim, passages);
+  if (fb) return { ...out, ...fb, guard: null };
+
+  // 4) Supported only when every number, ordinal and name in the claim is in the cited sentence.
+  if (missingQuote.length) {
+    return { ...out, guard: `"${missingQuote.join('", "')}" from the claim is not in the quoted sentence, so the model's verdict was not trusted.`, reason: "The quoted sentence doesn't confirm every detail." };
   }
-  // 3) Supported only if every number, ordinal and name in the claim is in the quoted passage.
-  if (raw.verdict === "SUPPORTED" || (usable && matched === usable) || raw.verdict === "CONTRADICTED") {
-    if (missingEv.length) {
-      const fb = codeConflict(claim, passages);
-      if (fb) return { ...out, ...fb, guard: null };
-      return { ...out, guard: `"${missingEv.join('", "')}" from the claim is not in the evidence, so the model's verdict was not trusted.`, reason: "Evidence doesn't confirm every detail." };
-    }
-    if (raw.verdict === "CONTRADICTED") return { ...out, status: "CONTRADICTED", reason: "The source states this differently." };
-    return { ...out, status: "SUPPORTED", reason: "The source states the same fact." + (raw.verdict !== "SUPPORTED" ? " (all details matched in code)" : ""), decidedBy: raw.verdict === "SUPPORTED" ? "model" : "code" };
+  if (raw.verdict === "CONTRADICTED") return { ...out, status: "CONTRADICTED", reason: "The source states this differently." };
+  if (raw.verdict === "SUPPORTED" || (usable && matched === usable)) {
+    return { ...out, status: "SUPPORTED", reason: "The quoted sentence states the same fact.", decidedBy: raw.verdict === "SUPPORTED" ? "model" : "code" };
   }
-  out.reason = missingEv.length ? `Not settled by the sources (${missingEv.map(d => `"${d}"`).join(", ")} not found).` : "Not settled by the sources.";
+  out.reason = "Not settled by the sources.";
   return out;
 }
 

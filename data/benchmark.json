@@ -1,20 +1,20 @@
 {
  "model": "Qwen2.5-1.5B-Instruct Q4 (CPU reference, plain-JSON mode)",
  "gpu": "llama.cpp CPU reference",
- "date": "2026-11-26T17:31:47.706Z",
+ "date": "2026-11-26T21:41:28.860Z",
  "metrics": {
   "n": 40,
   "trueSupported": 18,
   "trueFlagged": 0,
   "trueUnverified": 2,
-  "falseCaught": 5,
+  "falseCaught": 9,
   "falsePassed": 1,
-  "falseUnverified": 14,
-  "guardCatches": 15,
+  "falseUnverified": 10,
+  "guardCatches": 11,
   "nTrue": 20,
   "nFalse": 20,
-  "accuracy": 57.5,
-  "falseCaughtPct": 25,
+  "accuracy": 67.5,
+  "falseCaughtPct": 45,
   "dangerousPct": 5,
   "trueSupportedPct": 90
  },
@@ -161,11 +161,11 @@
     "Mount Everest"
    ],
    "label": false,
-   "status": "UNVERIFIED",
+   "status": "CONTRADICTED",
    "rawVerdict": "SUPPORTED",
-   "guard": "\"1950\" from the claim is not in the quoted sentence, so the model's verdict was not trusted.",
+   "guard": null,
    "quote": "Mount Everest (Sagarmatha), Earth's highest mountain at 8,848.86 m on the Nepal-Tibet border, formed by the ongoing India-Eurasia plate collision; first climbed 29 May 1953 by Hillary and Tenzing Norgay.",
-   "reason": "The quoted sentence doesn't confirm every detail."
+   "reason": "Claim says 1950; the source says 1953."
   },
   {
    "id": 10,
@@ -187,11 +187,11 @@
     "Isaac Newton"
    ],
    "label": false,
-   "status": "UNVERIFIED",
+   "status": "CONTRADICTED",
    "rawVerdict": "SUPPORTED",
-   "guard": "\"1705\" from the claim is not in the quoted sentence, so the model's verdict was not trusted.",
+   "guard": null,
    "quote": "Sir Isaac Newton (1642–1727) was an English mathematician and physicist who formulated the laws of motion and universal gravitation in his Principia Mathematica of 1687.",
-   "reason": "The quoted sentence doesn't confirm every detail."
+   "reason": "Claim says 1705; the source says 1642 / 1727 / 1687."
   },
   {
    "id": 12,
@@ -343,11 +343,11 @@
     "ISRO"
    ],
    "label": false,
-   "status": "UNVERIFIED",
+   "status": "CONTRADICTED",
    "rawVerdict": "SUPPORTED",
-   "guard": "\"1975\" from the claim is not in the quoted sentence, so the model's verdict was not trusted.",
+   "guard": null,
    "quote": "ISRO, the Indian Space Research Organisation, is India's space agency, headquartered in Bengaluru and founded in 1969.",
-   "reason": "The quoted sentence doesn't confirm every detail."
+   "reason": "Claim says 1975; the source says 1969."
   },
   {
    "id": 24,
@@ -395,11 +395,11 @@
     "Python (programming language)"
    ],
    "label": false,
-   "status": "UNVERIFIED",
+   "status": "CONTRADICTED",
    "rawVerdict": "NOT_FOUND",
-   "guard": "\"2000\" from the claim is not in the quoted sentence, so the model's verdict was not trusted.",
+   "guard": null,
    "quote": "Python 3.13 was first released on 7 October 2024 and remains in security support until October 2029; Python 3.14 followed on 7 October 2025 with support to October 2030; and Python 3.15, released 9 October 2026, is supported to October 2031.",
-   "reason": "The quoted sentence doesn't confirm every detail."
+   "reason": "Claim says 2000; the source says 2024 / 2029 / 2025 / 2030 / 2026 / 2031."
   },
   {
    "id": 28,

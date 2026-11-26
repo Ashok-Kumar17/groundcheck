@@ -1,9 +1,9 @@
-import { createLLM, MODELS, gpuInfo } from "./llm.js?v=16";
-import { createEdgepedia } from "./edgepedia.js?v=16";
-import { runGroundcheck, checkClaim, splitSentences, norm } from "./pipeline.js?v=16";
-import { slopScore } from "./slop.js?v=16";
-import { SAMPLES } from "./samples.js?v=16";
-import { EVALSET, scoreEval } from "./evalset.js?v=16";
+import { createLLM, MODELS, gpuInfo } from "./llm.js?v=17";
+import { createEdgepedia } from "./edgepedia.js?v=17";
+import { runGroundcheck, checkClaim, splitSentences, norm } from "./pipeline.js?v=17";
+import { slopScore } from "./slop.js?v=17";
+import { SAMPLES } from "./samples.js?v=17";
+import { EVALSET, scoreEval } from "./evalset.js?v=17";
 
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -203,6 +203,7 @@ async function run(text, recorded) {
     if (e.type === "llm") { if (e.usage.error) llmErrors++; trace("llm", `LLM ${e.stage}: ${e.usage.error ? "error — " + e.usage.error : `${e.usage.prompt_tokens ?? "?"} in → ${e.usage.completion_tokens ?? "?"} out tokens, ${Math.round(e.usage.ms || 0)} ms`}`); }
     if (e.type === "claim") { claims.push(e.claim); upsert(e.claim); renderAnnotated(text, sentences, claims, slop); trace("res", `claim: ${e.claim.claim}  [${e.claim.entities.join(", ")}]`); }
     if (e.type === "result") {
+      const k = claims.findIndex(x => x.id === e.claim.id); if (k >= 0) claims[k] = e.claim;
       upsert(e.claim); renderAnnotated(text, sentences, claims, slop);
       for (const l of ep.stats.log.splice(0)) trace("net", `Edgepedia ${l.path}  ${l.ms} ms, ${l.sent} B sent`);
       trace("res", `→ ${e.claim.result.status}${e.claim.result.guard ? "  (guard: " + e.claim.result.guard + ")" : ""}`);

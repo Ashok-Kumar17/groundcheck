@@ -73,6 +73,15 @@ const VERIFY_SCHEMA = { properties: { quote: {}, passage: {}, checks: {}, verdic
 
 // Group consecutive capitalised words (incl. initials like "G. H. Hardy", hyphenated "Chandrayaan-3")
 // into entity names. Runs in code so the model never has to produce an entities field.
+function isDuplicate(text, claims) {
+  const a = new Set(tokens(keywords(text, 30)));
+  return claims.some(c => {
+    const b = new Set(tokens(keywords(c.claim, 30)));
+    const inter = [...a].filter(t => b.has(t)).length;
+    return inter / Math.max(1, Math.min(a.size, b.size)) >= 0.85;
+  });
+}
+
 export function deriveEntities(claim) {
   const words = claim.replace(/[,;:()"]/g, " ").split(/\s+/).filter(Boolean);
   const ents = []; let cur = [];
@@ -225,6 +234,16 @@ export function applyGuards(claim, raw, passages) {
   if (badYear && qYears.length) {
     return { ...out, status: "CONTRADICTED", decidedBy: "code", reason: `Claim says ${badYear}; the source says ${qYears.join(" / ")}.` };
   }
+  // Same fact, different year: the cited sentence covers the claim's other content words but states a
+  // different year than the claim (even if the claim's year appears elsewhere in the article).
+  const claimYears = numbersIn(claim).filter(d => /^(1[0-9]{3}|20[0-9]{2})$/.test(d));
+  if (claimYears.length && qYears.length && claimYears.every(y => !qYears.includes(y))) {
+    const kw = tokens(keywords(claim, 20)).filter(t => !/^\d/.test(t));
+    const st = new Set(tokens(quote));
+    if (kw.length && kw.filter(t => st.has(t)).length / kw.length >= 0.75) {
+      return { ...out, status: "CONTRADICTED", decidedBy: "code", reason: `Claim says ${claimYears.join(", ")}; the source says ${qYears.join(" / ")}.` };
+    }
+  }
   const qOrd = tokens(quote).filter(t => ORD.includes(t));
   const badOrd = missingAll.find(d => ORD.includes(d));
   if (badOrd && qOrd.length) {
@@ -337,6 +356,7 @@ export async function runGroundcheck(text, { llm, ep, onEvent = () => {}, opts =
     for (const text of normClaims(data).slice(0, 4)) {
       if (text.split(" ").length < 3) continue;
       if (SUBJECTIVE.test(text)) continue; // flourish, not a checkable fact
+      if (isDuplicate(text, claims)) continue; // same fact extracted twice
       const item = { id: claims.length, sentence: i, span: [s.start, s.end], claim: text, entities: deriveEntities(text) };
       claims.push(item);
       onEvent({ type: "claim", claim: item });

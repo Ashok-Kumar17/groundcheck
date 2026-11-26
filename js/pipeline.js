@@ -193,6 +193,8 @@ export function applyGuards(claim, raw, passages) {
   // 3) Supported only if every number, ordinal and name in the claim is in the quoted passage.
   if (raw.verdict === "SUPPORTED" || (usable && matched === usable) || raw.verdict === "CONTRADICTED") {
     if (missingEv.length) {
+      const fb = codeConflict(claim, passages);
+      if (fb) return { ...out, ...fb, guard: null };
       return { ...out, guard: `"${missingEv.join('", "')}" from the claim is not in the evidence, so the model's verdict was not trusted.`, reason: "Evidence doesn't confirm every detail." };
     }
     if (raw.verdict === "CONTRADICTED") return { ...out, status: "CONTRADICTED", reason: "The source states this differently." };

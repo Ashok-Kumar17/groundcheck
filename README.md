@@ -40,4 +40,4 @@ Any static server works: `python -m http.server`, then open `http://localhost:80
 
 Article text from Edgepedia (EdgeChat), Edgepedia Community License 1.0. Each card links to and credits its article. Models: Qwen2.5 / Llama 3.2 via [WebLLM](https://github.com/mlc-ai/web-llm).
 
-Built by Nagul Prasath S V, IIT Madras.
+Built by Ashok Kumar Meena, IIT Madras.

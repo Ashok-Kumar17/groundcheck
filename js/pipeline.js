@@ -120,10 +120,37 @@ const YEAR = /\b(1[0-9]{3}|20[0-9]{2})\b/g;
 const short = (x) => tokens(x).length > 0 && tokens(x).length <= 6;
 const hasTok = (text, d) => new RegExp(`\\b${d.replace(/\./g, "\\.")}\\b`).test(norm(text));
 
+// Fallback when the model finds no quote: look for the source sentence about the same fact ourselves.
+// Only fires on a typed conflict (year or ordinal) in a sentence sharing most of the claim's other words.
+export function codeConflict(claim, passages) {
+  const hard = hardDetails(claim);
+  const allText = passages.map(p => p.text).join(" ");
+  const bad = hard.filter(d => !hasTok(allText, d)).find(d => /^(1[0-9]{3}|20[0-9]{2})$/.test(d) || ORD.includes(d));
+  if (!bad) return null;
+  const isYear = /^\d{4}$/.test(bad);
+  const kw = tokens(keywords(claim, 20)).filter(t => t !== bad && !/^\d+$/.test(t));
+  let best = null;
+  passages.forEach((p, pi) => {
+    for (const sent of p.text.split(/(?<=[.!?])\s+/)) {
+      const st = new Set(tokens(sent));
+      const cover = kw.filter(t => st.has(t)).length / Math.max(1, kw.length);
+      const other = isYear ? (norm(sent).match(YEAR) || []) : tokens(sent).filter(t => ORD.includes(t));
+      if (other.length && cover >= 0.6 && (!best || cover > best.cover)) best = { cover, sent, pi, other };
+    }
+  });
+  if (!best) return null;
+  return { status: "CONTRADICTED", decidedBy: "code", evidenceIndex: best.pi, quote: best.sent,
+    reason: `Claim says ${isYear ? bad : `"${bad}"`}; the source says ${[...new Set(best.other)].join(" / ")}.` };
+}
+
 export function applyGuards(claim, raw, passages) {
   const out = { ...raw, status: "UNVERIFIED", guard: null, decidedBy: "model" };
   const allText = passages.map(p => p.text).join(" ");
-  if (!raw.quote) { out.reason = "The sources found don't cover this claim."; return out; }
+  if (!raw.quote) {
+    const fb = codeConflict(claim, passages);
+    if (fb) return { ...out, ...fb };
+    out.reason = "The sources found don't cover this claim."; return out;
+  }
   const hit = quoteFound(raw.quote, passages);
   if (!hit) {
     out.guard = "The model's quote is not in the source (invented evidence), so its verdict was discarded.";

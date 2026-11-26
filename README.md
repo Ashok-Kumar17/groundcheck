@@ -2,6 +2,8 @@
 
 **Fact-checks AI-written text on your own device and shows the exact source sentence behind every verdict.**
 
+**Demo video (45 s):** https://drive.google.com/file/d/16fXy1ohpfu5yLmmzqRn9dWy9_1PqKg6L/view
+
 **Live demo:** https://ashok-kumar17.github.io/groundcheck/ (Chrome or Edge with WebGPU; there's also a *Replay a recorded run* button for machines without it)
 
 Paste a paragraph from ChatGPT, Gemini or any other assistant. A small language model running **in your browser on your GPU** (WebLLM + WebGPU, Qwen2.5 1.5B) splits it into claims. It looks each claim up in [Edgepedia](https://www.edgepedia.org) through its public API and marks it **supported**, **contradicted** or **couldn't verify**, with the real source sentence highlighted and linked.
@@ -13,6 +15,7 @@ Paste a paragraph from ChatGPT, Gemini or any other assistant. A small language 
 |                                   | Same model asked directly | Groundcheck |
 |-----------------------------------|:---:|:---:|
 | False claims shown as **supported** | **65%** | **5%** |
+| False claims caught outright      | 15% | 45% |
 | True claims confirmed             | 85% | 90% |
 
 A wrong green tick is the costly error, so the system prefers an honest "couldn't verify". The one false claim that still passes is a role swap ("Aldrin stayed in orbit while Armstrong and Collins landed"): every name is present in the source, and only the roles are wrong. Catching that needs relation-level checking, which is the next step.

@@ -32,6 +32,12 @@ export const norm = (s) => (s || "").toLowerCase().normalize("NFKD").replace(/[Ì
 const tokens = (s) => norm(s).split(" ").filter(Boolean);
 export const keywords = (s, max = 8) => [...new Set(tokens(s).filter(w => !STOP.has(w) && w.length > 1))].slice(0, max).join(" ");
 export const numbersIn = (s) => [...new Set((norm(s).match(/\b\d+(?:\.\d+)?\b/g) || []).filter(n => n.length > 0))];
+export const clipText = (t, n) => {
+  if (!n || t.length <= n) return t;
+  const cut = t.slice(0, n);
+  const end = Math.max(cut.lastIndexOf(". "), cut.lastIndexOf("; "));
+  return end > n * 0.5 ? cut.slice(0, end + 1) : cut;
+};
 const cleanMd = (s) => (s || "").replace(/\[([^\]]+)\]\([^)]+\)/g, "$1").replace(/\*\*/g, "").replace(/\[\d+\]/g, "").replace(/\s+/g, " ").trim();
 
 // Opinion/flourish predicates are not checkable facts; drop claims built on them (code-side net under the prompt).
@@ -247,7 +253,7 @@ async function retrieve(ep, claim, entities, resolved, opts) {
 
 // ---------- main ----------
 export async function runGroundcheck(text, { llm, ep, onEvent = () => {}, opts = {} }) {
-  opts = { k: 3, maxArticles: 2, maxPassages: 5, maxClaims: 12, ...opts };
+  opts = { k: 3, maxArticles: 2, maxPassages: 4, clip: 360, maxClaims: 12, ...opts };
   const t0 = performance.now();
   const sentences = splitSentences(text);
   const claims = [];
@@ -295,7 +301,7 @@ export async function runGroundcheck(text, { llm, ep, onEvent = () => {}, opts =
       onEvent({ type: "result", claim: c });
       continue;
     }
-    const ctx = passages.map((p, i) => `[${i + 1}] (${p.title}) ${p.text}`).join("\n");
+    const ctx = passages.map((p, i) => `[${i + 1}] (${p.title}) ${clipText(p.text, opts.clip)}`).join("\n");
     let data = null, usage = {};
     try { ({ data, usage } = await llm.json([
       { role: "system", content: VERIFY_SYS },
@@ -316,13 +322,13 @@ export async function runGroundcheck(text, { llm, ep, onEvent = () => {}, opts =
 
 // Verify one ready-made claim (used by the eval harness: skips extraction, keeps everything else identical).
 export async function checkClaim(claim, entities, { llm, ep, opts = {} }) {
-  opts = { k: 3, maxArticles: 2, maxPassages: 5, ...opts };
+  opts = { k: 3, maxArticles: 2, maxPassages: 4, clip: 360, ...opts };
   const resolved = new Map();
   const r = await ep.resolve(entities.map(e => ({ name: e, context: claim }))).catch(() => null);
   (r?.results || []).forEach((x, j) => { if (x?.result && (x.confidence ?? 0) >= 0.5) resolved.set(entities[j].toLowerCase(), { ...x.result }); });
   const { passages } = await retrieve(ep, claim, entities, resolved, opts);
   if (!passages.length) return { status: "UNVERIFIED", verdict: "NOT_FOUND", quote: "", reason: "no article", passages };
-  const ctx = passages.map((p, i) => `[${i + 1}] (${p.title}) ${p.text}`).join("\n");
+  const ctx = passages.map((p, i) => `[${i + 1}] (${p.title}) ${clipText(p.text, opts.clip)}`).join("\n");
   const { data, usage } = await llm.json([
     { role: "system", content: VERIFY_SYS },
     { role: "user", content: `CLAIM: ${claim}\n\nPASSAGES:\n${ctx}` },

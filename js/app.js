@@ -32,6 +32,7 @@ let gpu = { ok: false }, busy = false, lastRun = null;
 
 // ---------- setup ----------
 for (const m of MODELS) $("#modelSel").insertAdjacentHTML("beforeend", `<option value="${m.id}">${esc(m.label)} (${m.size})</option>`);
+if ((navigator.deviceMemory || 16) <= 8) { $("#modelSel").value = "Qwen2.5-0.5B-Instruct-q4f16_1-MLC"; } // shared-memory iGPU: start light
 SAMPLES.forEach((s, i) => $("#sampleBtns").insertAdjacentHTML("beforeend", `<button class="chip" data-i="${i}">${esc(s.title)}<small>${esc(s.note)}</small></button>`));
 $("#input").value = SAMPLES[0].text;
 

@@ -27,10 +27,16 @@ export function createLLM() {
     get model() { return current; },
     async load(modelId, onProgress) {
       const t0 = performance.now();
-      if (!engine) engine = await CreateMLCEngine(modelId, { initProgressCallback: onProgress });
-      else if (current !== modelId) await engine.reload(modelId);
+      // Small prefill chunks keep every GPU dispatch short, so Windows' GPU watchdog (TDR) doesn't
+      // kill the device mid-prefill on integrated GPUs — the failure mode on 8 GB laptops.
+      const opts = { context_window_size: 4096, prefill_chunk_size: 512 };
+      if (!engine) engine = await CreateMLCEngine(modelId, { initProgressCallback: onProgress }, opts);
+      else await engine.reload(modelId, opts);
       current = modelId;
       stats.loadMs = performance.now() - t0;
+    },
+    async recover(onProgress) {
+      engine = await CreateMLCEngine(current, { initProgressCallback: onProgress }, { context_window_size: 4096, prefill_chunk_size: 512 });
     },
     async json(messages, schema, maxTokens = 256) {
       const t0 = performance.now();
@@ -41,7 +47,9 @@ export function createLLM() {
       let r;
       try { r = await attempt(true); }
       catch (e1) {
-        // Known WebLLM issue: a disposed GrammarMatcher kills schema mode. Retry once, then fall back to plain JSON mode.
+        const lost = /device|lost|instance has been disposed/i.test(String(e1?.message || e1));
+        if (lost) await this.recover(); // GPU device lost: reload weights from cache and retry
+        // Also covers the disposed-GrammarMatcher WebLLM bug: retry schema mode, then plain JSON mode.
         try { r = await attempt(true); } catch (e2) { r = await attempt(false); }
       }
       const ms = performance.now() - t0;

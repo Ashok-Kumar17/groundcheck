@@ -6,13 +6,16 @@ import { SAMPLES } from "../js/samples.js";
 import fs from "node:fs";
 
 const stats = { loadMs: 0, calls: 0, promptTokens: 0, outTokens: 0, ttft: [], decode: [], prefill: [], llmMs: 0 };
+import { parseJSON } from "./parse.mjs";
 const llm = {
   async json(messages, schema, max_tokens) {
-    const r = await fetch("http://127.0.0.1:8765", { method: "POST", body: JSON.stringify({ messages, schema, max_tokens }) }).then(r => r.json());
+    const keys = Object.keys(schema?.properties || {});
+    const hint = keys.length ? `\nRespond with ONLY one minified JSON object, no prose, no code fence. Keys: ${keys.join(", ")}.` : "";
+    const msgs = messages.map((m, i) => i === 0 && m.role === "system" ? { ...m, content: m.content + hint } : m);
+    const r = await fetch("http://127.0.0.1:8765", { method: "POST", body: JSON.stringify({ messages: msgs, schema, max_tokens, plain: true }) }).then(r => r.json());
     stats.calls++; stats.llmMs += r.s * 1000;
     stats.promptTokens += r.usage?.prompt_tokens || 0; stats.outTokens += r.usage?.completion_tokens || 0;
-    let data = null; try { data = JSON.parse(r.content); } catch {}
-    return { data, usage: { ...r.usage, ms: r.s * 1000 } };
+    return { data: parseJSON(r.content), usage: { ...r.usage, ms: r.s * 1000 } };
   },
 };
 const ep = createEdgepedia();

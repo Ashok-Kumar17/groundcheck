@@ -146,6 +146,7 @@ export function locateEvidence(quote, passages) {
   return best.score >= 0.6 ? best : null;
 }
 
+const ANTONYMS = [["north","south"],["east","west"],["highest","lowest"],["tallest","shortest"],["largest","smallest"],["biggest","smallest"],["first","last"],["oldest","newest"],["before","after"],["more","fewer"],["most","least"],["increased","decreased"],["rose","fell"]];
 const ORD = "first second third fourth fifth sixth seventh eighth ninth tenth".split(" ");
 const contains = (hay, needle, thr = 1) => {
   const nt = tokens(needle).filter(t => !STOP.has(t)); if (!nt.length) return false;
@@ -156,7 +157,8 @@ export function hardDetails(claim) {
   const words = claim.replace(/[.,;:!?]/g, " ").split(/\s+/).filter(Boolean);
   const caps = words.filter((w, i) => i > 0 && /^[A-Z][a-z]/.test(w) && !STOP.has(w.toLowerCase()));
   const ords = tokens(claim).filter(t => ORD.includes(t));
-  return [...new Set([...numbersIn(claim), ...ords, ...caps.map(c => norm(c))])];
+  const dirs = tokens(claim).filter(t => ANTONYMS.flat().includes(t));
+  return [...new Set([...numbersIn(claim), ...ords, ...dirs, ...caps.map(c => norm(c))])];
 }
 
 const YEAR = /\b(1[0-9]{3}|20[0-9]{2})\b/g;
@@ -211,7 +213,8 @@ export function applyGuards(claim, raw, passages) {
   // The discriminating values (numbers, ordinals) must appear in the CITED SENTENCE — those are what a
   // model fakes. Proper-noun names only need to be somewhere in the passage: they establish the topic,
   // not the disputed fact. This gives recall on split sentences without re-opening the false-green hole.
-  const isDiscriminating = (d) => /^\d/.test(d) || ORD.includes(d);
+  const DIRWORDS = new Set(ANTONYMS.flat());
+  const isDiscriminating = (d) => /^\d/.test(d) || ORD.includes(d) || DIRWORDS.has(d);
   const missingQuote = hard.filter(d => isDiscriminating(d) ? !hasTok(quote, d) : !hasTok(passageText, d));
   const missingAll = hard.filter(d => !hasTok(allText, d));
 
@@ -226,6 +229,17 @@ export function applyGuards(claim, raw, passages) {
   const badOrd = missingAll.find(d => ORD.includes(d));
   if (badOrd && qOrd.length) {
     return { ...out, status: "CONTRADICTED", decidedBy: "code", reason: `Claim says "${badOrd}"; the source says "${qOrd[0]}".` };
+  }
+  // Factual opposites: if the claim says one side and the cited sentence says the other, that's a conflict
+  // the model often misses because both words look equally "on topic" (north vs south pole, etc.).
+  const ct = new Set(tokens(claim));
+  for (const [a, b] of ANTONYMS) {
+    const cA = ct.has(a), cB = ct.has(b);
+    if (cA === cB) continue; // claim must contain exactly one side
+    const inClaim = cA ? a : b, opp = cA ? b : a;
+    if (hasTok(quote, opp) && !hasTok(quote, inClaim)) {
+      return { ...out, status: "CONTRADICTED", decidedBy: "code", reason: `Claim says "${inClaim}"; the source says "${opp}".` };
+    }
   }
 
   // 2) Short slot comparison (the model extracts, code compares) — source_says must really be in the quote.

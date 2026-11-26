@@ -44,53 +44,80 @@ const cleanMd = (s) => (s || "").replace(/\[([^\]]+)\]\([^)]+\)/g, "$1").replace
 const SUBJECTIVE = /\b(beacon|testament|tapestry|marvels?|masterpiece|breathtaking|iconic|stunning|remarkable|visionary|perseverance|inspiring|world-class|renowned|unwavering|vibrant|bustling|ever-evolving|game-changer|pivotal|innovation hub|low-cost innovation|rich (?:history|heritage)|must-(?:see|visit))\b/i;
 
 // ---------- prompts ----------
-const EXTRACT_SYS = `You turn ONE sentence into short, self-contained factual claims that can be checked in an encyclopedia.
-Rules:
-- Use only what the sentence says. Never add facts.
-- Replace pronouns and vague references ("it", "he", "the tower", "the city") with the full name, using the context.
-- One fact per claim. Copy numbers, dates and names exactly as written.
-- Skip opinions, advice, feelings and vague praise. If nothing is checkable, return an empty list.
-- entities: the specific named things the claim is about (people, places, organisations, events, objects, works). Most important first.`;
+// Small models without grammar constraints invent their own JSON shape, so each prompt asks for the
+// simplest possible structure, shows one worked example, and the normalizers below accept variants.
+const EXTRACT_SYS = `Break ONE sentence into a list of short factual claims an encyclopedia could check.
+- Use only what the sentence says; add nothing.
+- Replace "it", "he", "the city" with the real name from the context.
+- One fact per claim. Keep numbers, dates and names exact.
+- Skip opinions and praise. If nothing is checkable, use an empty list.
 
-const EXTRACT_SCHEMA = {
-  type: "object",
-  properties: {
-    claims: {
-      type: "array",
-      items: {
-        type: "object",
-        properties: { claim: { type: "string" }, entities: { type: "array", items: { type: "string" } } },
-        required: ["claim", "entities"],
-      },
-    },
-  },
-  required: ["claims"],
-};
+Reply with JSON only, exactly this shape:
+{"claims": ["first claim", "second claim"]}
 
-const VERIFY_SYS = `You are a careful fact-checker. You get a CLAIM and numbered PASSAGES from an encyclopedia.
-Fill in, in this order:
-1. quote: copy WORD FOR WORD the one sentence from the passages that is about the same fact as the claim. If none is, write "".
-2. passage: the number of that passage (0 if none).
-3. checks: for each key detail of the claim (a name, number, date, place, rank or order), write
-   claim_says: that detail as the claim states it, 1 to 4 words only,
-   source_says: what the quote states for the SAME detail, 1 to 4 words copied from the quote ("" if not mentioned).
-   Example: claim "The bridge opened in 1932 in Sydney" → [{"claim_says":"1932","source_says":"1932"},{"claim_says":"Sydney","source_says":"Sydney"}].
-4. verdict: SUPPORTED if every detail matches, CONTRADICTED if any detail differs, NOT_FOUND if the passages do not say.
-Use only the passages, never your own memory. Be suspicious: the claim may contain a small planted error.`;
+Example sentence: "In 1889 it opened in Paris, a stunning engineering marvel."
+Example reply: {"claims": ["The structure opened in 1889", "The structure opened in Paris"]}`;
+const EXTRACT_SCHEMA = { properties: { claims: {} } };
 
-const VERIFY_SCHEMA = {
-  type: "object",
-  properties: {
-    quote: { type: "string" },
-    passage: { type: "integer" },
-    checks: {
-      type: "array",
-      items: { type: "object", properties: { claim_says: { type: "string" }, source_says: { type: "string" } }, required: ["claim_says", "source_says"] },
-    },
-    verdict: { type: "string", enum: VERDICTS },
-  },
-  required: ["quote", "passage", "checks", "verdict"],
-};
+const VERIFY_SYS = `Check a CLAIM against numbered encyclopedia PASSAGES. Use only the passages, never memory.
+Give:
+- quote: copy one sentence WORD FOR WORD from the passages that is about the same fact as the claim ("" if none).
+- passage: its number (0 if none).
+- checks: for each key detail (number, date, place, rank, name) a pair {"claim_says","source_says"}, each 1-4 words, source_says copied from the quote ("" if the quote omits it).
+- verdict: SUPPORTED if every detail matches, CONTRADICTED if any differs, NOT_FOUND if the passages do not say.
+The claim may contain a small planted error, so compare every number and name.
+
+Reply with JSON only, exactly this shape:
+{"quote":"...","passage":1,"checks":[{"claim_says":"1932","source_says":"1932"}],"verdict":"SUPPORTED"}`;
+const VERIFY_SCHEMA = { properties: { quote: {}, passage: {}, checks: {}, verdict: {} } };
+
+// Group consecutive capitalised words (incl. initials like "G. H. Hardy", hyphenated "Chandrayaan-3")
+// into entity names. Runs in code so the model never has to produce an entities field.
+export function deriveEntities(claim) {
+  const words = claim.replace(/[,;:()"]/g, " ").split(/\s+/).filter(Boolean);
+  const ents = []; let cur = [];
+  const flush = () => { if (cur.length) ents.push(cur.join(" ")); cur = []; };
+  for (const w of words) {
+    const bare = w.replace(/[.]$/, "");
+    const initial = /^[A-Z]\.$/.test(w);
+    if (initial || (/^[A-Z][A-Za-z0-9'’\-]*$/.test(bare) && !STOP.has(bare.toLowerCase()))) cur.push(initial ? w : bare);
+    else flush();
+  }
+  flush();
+  const seen = new Set(), out = [];
+  for (const e of ents.sort((a, b) => b.length - a.length)) { const k = e.toLowerCase(); if (seen.has(k) || e.length < 2) continue; seen.add(k); out.push(e); }
+  return out.slice(0, 3);
+}
+
+// Accept any shape a small model emits for the claim list → array of strings.
+export function normClaims(data) {
+  if (!data) return [];
+  let arr = Array.isArray(data) ? data : Array.isArray(data.claims) ? data.claims : null;
+  if (!arr) {
+    const keyed = Object.entries(data).filter(([k]) => /^claim\s*\d*$/i.test(k) || /^\d+$/.test(k)).map(([, v]) => v);
+    arr = keyed.length ? keyed : Object.values(data).filter(v => typeof v === "string" || (v && typeof v === "object"));
+  }
+  const out = [];
+  for (const it of arr) {
+    if (typeof it === "string") out.push(it);
+    else if (it && typeof it === "object") { const v = it.claim || it.text || it.statement || Object.values(it).find(x => typeof x === "string"); if (v) out.push(v); }
+  }
+  return out.map(s => String(s).trim()).filter(Boolean);
+}
+
+// Accept verdict/quote/checks under common alternative keys and verdict synonyms.
+export function normVerify(data) {
+  if (!data || typeof data !== "object") return { quote: "", passage: 0, checks: [], verdict: "NOT_FOUND" };
+  const get = (names) => { for (const k of Object.keys(data)) if (names.includes(k.toLowerCase())) return data[k]; };
+  let v = String(get(["verdict", "result", "label", "status", "answer"]) ?? "").toUpperCase();
+  if (/CONTRA|FALSE|INCORRECT|WRONG|MISMATCH|DIFFER/.test(v)) v = "CONTRADICTED";
+  else if (/SUPPORT|TRUE|CORRECT|CONFIRM|MATCH|ACCURATE/.test(v)) v = "SUPPORTED";
+  else v = "NOT_FOUND";
+  let checks = get(["checks", "details", "comparisons"]);
+  checks = Array.isArray(checks) ? checks.map(c => c && typeof c === "object"
+    ? { claim_says: String(c.claim_says ?? c.claim ?? c.claimSays ?? "").trim(), source_says: String(c.source_says ?? c.source ?? c.sourceSays ?? "").trim() } : null).filter(Boolean) : [];
+  return { quote: String(get(["quote", "evidence", "sentence", "source_sentence"]) ?? "").trim(), passage: parseInt(get(["passage", "passage_number", "n", "number"]), 10) || 0, checks, verdict: v };
+}
 
 // ---------- guards ----------
 // A verdict is only allowed to stand if the model can point at the exact evidence.
@@ -278,10 +305,10 @@ export async function runGroundcheck(text, { llm, ep, onEvent = () => {}, opts =
       { role: "user", content: `Context: ${ctx}\nSentence: ${s.text}` },
     ], EXTRACT_SCHEMA, 300)); } catch (e) { usage = { error: String(e.message || e).slice(0, 90) }; }
     onEvent({ type: "llm", stage: "extract", usage });
-    for (const c of (data?.claims || []).slice(0, 4)) {
-      if (!c.claim || c.claim.split(" ").length < 3) continue;
-      if (SUBJECTIVE.test(c.claim)) continue; // flourish, not a checkable fact
-      const item = { id: claims.length, sentence: i, span: [s.start, s.end], claim: c.claim.trim(), entities: (c.entities || []).filter(Boolean).slice(0, 3) };
+    for (const text of normClaims(data).slice(0, 4)) {
+      if (text.split(" ").length < 3) continue;
+      if (SUBJECTIVE.test(text)) continue; // flourish, not a checkable fact
+      const item = { id: claims.length, sentence: i, span: [s.start, s.end], claim: text, entities: deriveEntities(text) };
       claims.push(item);
       onEvent({ type: "claim", claim: item });
     }
@@ -316,7 +343,7 @@ export async function runGroundcheck(text, { llm, ep, onEvent = () => {}, opts =
       { role: "user", content: `CLAIM: ${c.claim}\n\nPASSAGES:\n${ctx}` },
     ], VERIFY_SCHEMA, 320)); } catch (e) { usage = { error: String(e.message || e).slice(0, 90) }; }
     onEvent({ type: "llm", stage: "verify", usage });
-    const raw = data && VERDICTS.includes(data.verdict) ? data : { quote: "", passage: 0, checks: [], verdict: "NOT_FOUND" };
+    const raw = normVerify(data);
     c.result = applyGuards(c.claim, raw, passages);
     onEvent({ type: "result", claim: c });
   }
@@ -341,6 +368,6 @@ export async function checkClaim(claim, entities, { llm, ep, opts = {} }) {
     { role: "system", content: VERIFY_SYS },
     { role: "user", content: `CLAIM: ${claim}\n\nPASSAGES:\n${ctx}` },
   ], VERIFY_SCHEMA, 320);
-  const raw = data && VERDICTS.includes(data.verdict) ? data : { quote: "", passage: 0, checks: [], verdict: "NOT_FOUND" };
+  const raw = normVerify(data);
   return { ...applyGuards(claim, raw, passages), rawVerdict: raw.verdict, passages, usage };
 }

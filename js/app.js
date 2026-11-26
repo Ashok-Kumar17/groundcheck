@@ -1,9 +1,9 @@
-import { createLLM, MODELS, gpuInfo } from "./llm.js?v=11";
-import { createEdgepedia } from "./edgepedia.js?v=11";
-import { runGroundcheck, checkClaim, splitSentences, norm } from "./pipeline.js?v=11";
-import { slopScore } from "./slop.js?v=11";
-import { SAMPLES } from "./samples.js?v=11";
-import { EVALSET, scoreEval } from "./evalset.js?v=11";
+import { createLLM, MODELS, gpuInfo } from "./llm.js?v=12";
+import { createEdgepedia } from "./edgepedia.js?v=12";
+import { runGroundcheck, checkClaim, splitSentences, norm } from "./pipeline.js?v=12";
+import { slopScore } from "./slop.js?v=12";
+import { SAMPLES } from "./samples.js?v=12";
+import { EVALSET, scoreEval } from "./evalset.js?v=12";
 
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));

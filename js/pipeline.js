@@ -229,17 +229,22 @@ function rankPassages(claim, passages, max) {
   return scored.sort((a, b) => b.rank - a.rank).filter(p => { const k = norm(p.text).slice(0, 80); if (seen.has(k)) return false; seen.add(k); return true; }).slice(0, max);
 }
 
-async function retrieve(ep, claim, entities, resolved, opts) {
+async function retrieve(ep, claim, entities, resolved, opts, sentText) {
   const kw = keywords(claim);
+  const kwSearch = keywords(`${claim} ${sentText || ""}`, 8); // the source sentence keeps names the split claim may have lost
   const arts = [];
   for (const e of entities.slice(0, 3)) {
     const r = resolved.get(e.toLowerCase());
     if (r && !arts.find(a => a.slug === r.slug)) arts.push(r);
     if (arts.length >= opts.maxArticles) break;
   }
-  if (!arts.length && kw) {
-    const s = await ep.search(kw, 2).catch(() => null);
-    for (const r of (s?.results || []).slice(0, opts.maxArticles)) arts.push({ slug: r.slug, title: r.title, url: r.url, excerpt: r.excerpt });
+  // Entity articles can be the wrong lens ("India" for a Moon-landing claim), so always add one
+  // keyword-search article too; the local re-ranker then picks whichever passages actually fit.
+  if (kwSearch) {
+    const s = await ep.search(kwSearch, 2).catch(() => null);
+    for (const r of (s?.results || []).slice(0, arts.length ? 1 : opts.maxArticles)) {
+      if (!arts.find(a => a.slug === r.slug)) arts.push({ slug: r.slug, title: r.title, url: r.url, excerpt: r.excerpt });
+    }
   }
   const all = [];
   await Promise.all(arts.map(async (a) => {
@@ -253,7 +258,7 @@ async function retrieve(ep, claim, entities, resolved, opts) {
 
 // ---------- main ----------
 export async function runGroundcheck(text, { llm, ep, onEvent = () => {}, opts = {} }) {
-  opts = { k: 3, maxArticles: 2, maxPassages: 4, clip: 360, maxClaims: 12, ...opts };
+  opts = { k: 3, maxArticles: 2, maxPassages: 4, clip: 650, maxClaims: 12, ...opts };
   const t0 = performance.now();
   const sentences = splitSentences(text);
   const claims = [];
@@ -294,7 +299,7 @@ export async function runGroundcheck(text, { llm, ep, onEvent = () => {}, opts =
   // 3) retrieve + 4) verify + 5) guard, claim by claim
   for (const c of claims) {
     onEvent({ type: "stage", stage: "verify", i: c.id, n: claims.length });
-    const { articles, passages } = await retrieve(ep, c.claim, c.entities, resolved, opts);
+    const { articles, passages } = await retrieve(ep, c.claim, c.entities, resolved, opts, sentences[c.sentence]?.text);
     c.articles = articles; c.passages = passages;
     if (!passages.length) {
       c.result = { status: "UNVERIFIED", verdict: "NOT_FOUND", quote: "", reason: "Edgepedia has no article on this.", guard: null };
@@ -322,7 +327,7 @@ export async function runGroundcheck(text, { llm, ep, onEvent = () => {}, opts =
 
 // Verify one ready-made claim (used by the eval harness: skips extraction, keeps everything else identical).
 export async function checkClaim(claim, entities, { llm, ep, opts = {} }) {
-  opts = { k: 3, maxArticles: 2, maxPassages: 4, clip: 360, ...opts };
+  opts = { k: 3, maxArticles: 2, maxPassages: 4, clip: 650, ...opts };
   const resolved = new Map();
   const r = await ep.resolve(entities.map(e => ({ name: e, context: claim }))).catch(() => null);
   (r?.results || []).forEach((x, j) => { if (x?.result && (x.confidence ?? 0) >= 0.5) resolved.set(entities[j].toLowerCase(), { ...x.result }); });
